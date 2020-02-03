@@ -1,0 +1,13 @@
+/.env
+
+/nginx/log*
+/nginx/ssl*
+/nginx/sites-available*
+/nginx/sites-enabled*
+/nginx/letsencrypt/live/*
+
+/redis/log*
+/redis/data*
+
+/scalelite/log*
+/scalelite/tmp*

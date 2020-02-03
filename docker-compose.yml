@@ -1,0 +1,66 @@
+version: '3'
+
+volumes:
+  database_data:
+    driver: local
+
+services:
+  nginx:
+    image: nginx:latest
+    restart: "no"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./nginx/sites.template:/etc/nginx/sites-available/sites.template
+      - ./nginx/default/html:/var/www/html
+      - ./nginx/log/nginx:/var/log/nginx
+      - ./nginx/letsencrypt/:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NGINX_DOMAIN=${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+    depends_on:
+      - scalelite
+    command: /bin/bash -c "envsubst '$$NGINX_DOMAIN' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && exec nginx -g 'daemon off;'"
+
+  redis:
+    image: redis
+    restart: "no"
+    ports:
+      - 127.0.0.1:6379:6379
+    expose:
+      - "6379"
+    networks:
+      - default
+#    volumes:
+#      - ./redis/data/dump.rdb:/var/lib/redis/dump.rdb
+#      - ./redis/log/:/var/log/
+
+  scalelite:
+    entrypoint: [bin/start]
+#    image: blindsidenetwks/scalelite:master
+    image: blindsidenetwks/scalelite:docker-pro
+    restart: "no"
+    ports:
+      - 127.0.0.1:3000:3000
+    expose:
+      - "3000"
+    links:
+      - redis
+    networks:
+      - default
+    volumes:
+      - ./scalelite/log:/usr/src/app/log
+      - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
+      - ./scalelite/bin/start:/usr/src/app/bin/start
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: udp://logs.$DOMAINNAME:1514
+#        tag: sl.$DOMAINNAME
+    env_file: ./scalelite/.env
+    environment:
+      - DOMAINNAME=${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - REDIS_URL=redis://redis.${DOMAIN_SUB:-xlab}.${DOMAIN_ROOT:-bigbluebutton.org}:6379
+      - URL_HOST=sl.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
