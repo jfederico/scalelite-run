@@ -29,31 +29,27 @@ services:
     restart: "no"
     ports:
       - 127.0.0.1:6379:6379
-    expose:
-      - "6379"
     networks:
       - default
-#    volumes:
-#      - ./redis/data/dump.rdb:/var/lib/redis/dump.rdb
-#      - ./redis/log/:/var/log/
+    volumes:
+      - ./redis/data/:/data
 
   scalelite:
     entrypoint: [bin/start]
-#    image: blindsidenetwks/scalelite:master
-    image: blindsidenetwks/scalelite:docker-pro
+    image: blindsidenetwks/scalelite:master
     restart: "no"
     ports:
       - 127.0.0.1:3000:3000
-    expose:
-      - "3000"
     links:
       - redis
     networks:
       - default
     volumes:
       - ./scalelite/log:/usr/src/app/log
-      - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
       - ./scalelite/bin/start:/usr/src/app/bin/start
+      - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
+      - ./scalelite/tmp/sockets/:/usr/src/app/tmp/sockets
+      - ./scalelite/tmp/cache/assets:/usr/src/app/tmp/cache/assets
 #    logging:
 #      driver: syslog
 #      options:
@@ -61,6 +57,6 @@ services:
 #        tag: sl.$DOMAINNAME
     env_file: ./scalelite/.env
     environment:
-      - DOMAINNAME=${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
-      - REDIS_URL=redis://redis.${DOMAIN_SUB:-xlab}.${DOMAIN_ROOT:-bigbluebutton.org}:6379
+      - REDIS_URL=redis://redis:6379
+      - REDIS_NAMESPACE=scalelite
       - URL_HOST=sl.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
