@@ -21,7 +21,7 @@ services:
     environment:
       - NGINX_DOMAIN=${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
     depends_on:
-      - scalelite
+      - scalelite.api
     command: /bin/bash -c "envsubst '$$NGINX_DOMAIN' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && exec nginx -g 'daemon off;'"
 
   redis:
@@ -29,12 +29,10 @@ services:
     restart: "no"
     ports:
       - 127.0.0.1:6379:6379
-    networks:
-      - default
     volumes:
       - ./redis/data/:/data
 
-  scalelite:
+  scalelite.api:
     entrypoint: [bin/start]
     image: blindsidenetwks/scalelite:master
     restart: "no"
@@ -42,21 +40,30 @@ services:
       - 127.0.0.1:3000:3000
     links:
       - redis
-    networks:
-      - default
     volumes:
-      - ./scalelite/log:/usr/src/app/log
-      - ./scalelite/bin/start:/usr/src/app/bin/start
+#      - ./scalelite/log/api:/srv/scalelite/log
+      - ./scalelite/bin/start:/srv/scalelite/bin/start
       - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
       - ./scalelite/tmp/sockets/:/usr/src/app/tmp/sockets
       - ./scalelite/tmp/cache/assets:/usr/src/app/tmp/cache/assets
-#    logging:
-#      driver: syslog
-#      options:
-#        syslog-address: udp://logs.$DOMAINNAME:1514
-#        tag: sl.$DOMAINNAME
     env_file: ./scalelite/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - REDIS_NAMESPACE=scalelite
       - URL_HOST=sl.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+
+  scalelite.poller:
+    entrypoint: [bin/start-poller]
+    image: blindsidenetwks/scalelite:master
+    restart: "no"
+    ports:
+      - 127.0.0.1:3001:3000
+    links:
+      - redis
+    volumes:
+#      - ./scalelite/log/poller:/srv/scalelite/log
+      - ./scalelite/bin/start-poller:/srv/scalelite/bin/start-poller
+    env_file: ./scalelite/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - URL_HOST=sl.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - INTERVAL=60

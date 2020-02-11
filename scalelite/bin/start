@@ -1,5 +1,21 @@
-#!/bin/bash
+#!/bin/sh
 
-bundle exec puma -C config/puma.rb
+
+
+servers="$(RAILS_ENV=$RAILS_ENV bundle exec rake servers 2>&1)"
+echo $servers
+
+if [ "$(echo "$servers" | cut -c0-2)" == "No" ]; then
+  echo ">>> Add test-install as the default server"
+  bundle exec rake servers:add["https://test-install.blindsidenetworks.com/bigbluebutton/api","8cd8ef52e8e101574e400365b55e11a6"]
+  bundle exec rake servers
+  bundle exec rake status
+else
+  echo ">>> Do nothing"
+fi
+
+
+exec tini -- bundle exec puma -C config/puma.rb "$@"
 #tail -f /dev/null
+#bundle exec puma -C config/puma.rb
 #bundle exec rails s -b 0.0.0.0 -p 3000

@@ -1,7 +1,7 @@
 #### For <sl.$NGINX_DOMAIN>
 
 upstream docker-scalelite {
-    server scalelite:3000;
+    server scalelite.api:3000;
 }
 
 server {
