@@ -1,4 +1,4 @@
-/.env
+.env
 
 /nginx/log*
 /nginx/ssl*
