@@ -19,10 +19,10 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_DOMAIN=${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - NGINX_HOSTNAME=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
     depends_on:
       - scalelite.api
-    command: /bin/bash -c "envsubst '$$NGINX_DOMAIN' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && exec nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && exec nginx -g 'daemon off;'"
 
   redis:
     image: redis
@@ -49,7 +49,7 @@ services:
     env_file: ./scalelite/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - URL_HOST=sl.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - URL_HOST=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
 
   scalelite.poller:
     entrypoint: [bin/start-poller]
@@ -65,5 +65,5 @@ services:
     env_file: ./scalelite/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - URL_HOST=sl.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - URL_HOST=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
       - INTERVAL=60

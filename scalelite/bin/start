@@ -10,6 +10,7 @@ if [ "$(echo "$servers" | cut -c0-2)" == "No" ]; then
   bundle exec rake servers:add["https://test-install.blindsidenetworks.com/bigbluebutton/api","8cd8ef52e8e101574e400365b55e11a6"]
   bundle exec rake servers
   bundle exec rake status
+  echo ">>> Server must be enabled from the console"
 else
   echo ">>> Do nothing"
 fi

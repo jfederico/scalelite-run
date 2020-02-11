@@ -1,19 +1,19 @@
-#### For <sl.$NGINX_DOMAIN>
+#### For <$NGINX_HOSTNAME>
 
 upstream docker-scalelite {
     server scalelite.api:3000;
 }
 
 server {
-    server_name sl.$NGINX_DOMAIN;
+    server_name $NGINX_HOSTNAME;
 
     listen 80;
     listen [::]:80;
     listen 443 ssl;
     listen [::]:443;
 
-    ssl_certificate /etc/letsencrypt/live/sl.$NGINX_DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/sl.$NGINX_DOMAIN/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/$NGINX_HOSTNAME/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$NGINX_HOSTNAME/privkey.pem;
 
     location / {
             proxy_pass  http://docker-scalelite;
