@@ -32,6 +32,19 @@ services:
     volumes:
       - ./data/redis/:/data
 
+  postgres:
+    image: postgres:9.5
+    restart: "no"
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - ./data/postgres/:/var/lib/postgresql/data
+    environment:
+      - PGHOST=postgres
+      - PGDATABASE=postgres
+      - PGUSER=postgres
+      - PGPASSWORD=password
+
   scalelite.api:
     entrypoint: [bin/start]
     image: blindsidenetwks/scalelite:master
@@ -40,8 +53,9 @@ services:
       - 127.0.0.1:3000:3000
     links:
       - redis
+      - postgres
     volumes:
-#      - ./scalelite/log/api:/srv/scalelite/log
+      - ./scalelite/log/api:/srv/scalelite/log
       - ./scalelite/bin/start:/srv/scalelite/bin/start
       - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
       - ./scalelite/tmp/sockets/:/usr/src/app/tmp/sockets
@@ -49,6 +63,10 @@ services:
     env_file: ./scalelite/.env
     environment:
       - REDIS_URL=redis://redis:6379
+      - DB_HOST=postgres
+      - DB_NAME=scalelite_production
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
       - URL_HOST=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
 
   scalelite.poller:
@@ -60,7 +78,7 @@ services:
     links:
       - redis
     volumes:
-#      - ./scalelite/log/poller:/srv/scalelite/log
+      - ./scalelite/log/poller:/srv/scalelite/log
       - ./scalelite/bin/start-poller:/srv/scalelite/bin/start-poller
     env_file: ./scalelite/.env
     environment:

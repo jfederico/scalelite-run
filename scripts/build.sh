@@ -63,8 +63,8 @@ if [ $sqliteCount -lt 2 ]; then
 fi
 
 # Set the version tag when it is a release or the commit sha was included.
-if [[ "$CD_REF_NAME" == *"release"* ]]; then
-  export CD_BUILD_NUMBER=${CD_REF_NAME:8}
+if [[ "$CD_REF_NAME" == *"v"* ]]; then
+  export CD_BUILD_NUMBER=${CD_REF_NAME:1}
 else
   export CD_BUILD_NUMBER="$CD_REF_NAME ($(expr substr $(git rev-parse HEAD) 1 7))"
 fi
@@ -87,7 +87,7 @@ echo "#### Docker image $CD_DOCKER_REPO:$CD_REF_NAME is being published"
 docker push $CD_DOCKER_REPO
 
 # Publish image as latest and v2 if it is a release (excluding alpha and beta)
-if [[ "$CD_REF_NAME" == *"release"* ]] && [[ "$CD_REF_NAME" != *"alpha"* ]] && [[ "$CD_REF_NAME" != *"beta"* ]]; then
+if [[ "$CD_REF_NAME" == *"v"* ]] && [[ "$CD_REF_NAME" != *"alpha"* ]] && [[ "$CD_REF_NAME" != *"beta"* ]]; then
   docker_image_id=$(docker images | grep -E "^$CD_DOCKER_REPO.*$CD_REF_NAME" | awk -e '{print $3}')
   docker tag $docker_image_id $CD_DOCKER_REPO:latest
   docker push $CD_DOCKER_REPO:latest
