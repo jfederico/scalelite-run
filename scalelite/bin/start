@@ -6,15 +6,31 @@ servers="$(RAILS_ENV=$RAILS_ENV bundle exec rake servers 2>&1)"
 echo $servers
 
 if [ "$(echo "$servers" | cut -c0-2)" == "No" ]; then
-  echo ">>> Add test-install as the default server"
+  echo ">>> Adding test-install as the default server"
   bundle exec rake servers:add["https://test-install.blindsidenetworks.com/bigbluebutton/api","8cd8ef52e8e101574e400365b55e11a6"]
   bundle exec rake servers
   bundle exec rake status
-  echo ">>> Server must be enabled from the console"
-else
-  echo ">>> Do nothing"
+  echo ">>> Server added by default must be enabled using the rake command"
 fi
 
+if [ "$RAILS_ENV" = "production" ] && [ "$DB_ADAPTER" = "postgresql" ]; then
+  while ! curl http://$DB_HOST:${DB_PORT:-5432}/ 2>&1 | grep '52'
+  do
+    echo "Waiting for postgres to start up ..."
+    sleep 1
+  done
+fi
+
+db_create="$(RAILS_ENV=$RAILS_ENV bundle exec rake db:create 2>&1)"
+echo $db_create
+
+if [[ $db_create == *"already exists"* ]]; then
+  echo ">>> Database migration"
+  bundle exec rake db:migrate
+else
+  echo ">>> Database initialization"
+  bundle exec rake db:schema:load
+fi
 
 exec tini -- bundle exec puma -C config/puma.rb "$@"
 #tail -f /dev/null

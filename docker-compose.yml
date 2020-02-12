@@ -57,6 +57,7 @@ services:
     volumes:
       - ./scalelite/log/api:/srv/scalelite/log
       - ./scalelite/bin/start:/srv/scalelite/bin/start
+      - ./scalelite/config/database.yml:/srv/scalelite/config/database.yml
       - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
       - ./scalelite/tmp/sockets/:/usr/src/app/tmp/sockets
       - ./scalelite/tmp/cache/assets:/usr/src/app/tmp/cache/assets
