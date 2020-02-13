@@ -3,7 +3,6 @@
 This document provides instructions on how to deploy scalelite + redis behind a nginx proxy
 using docker-compose.
 
-
 ## Prerequisites
 
 - Install
@@ -16,13 +15,21 @@ using docker-compose.
 
   - [scalelite](https://cloud.docker.com/u/blindsidenetwks/repository/docker/blindsidenetwks/scalelite)
 
-- Make sure you have your own DNS and a public domain name or a delegated one (e.g. <JOHN>.blindside-dev.com).
+- Make sure you have your own DNS and a public domain name (e.g. example.com) or a delegated one (e.g. <JOHN>.blindside-dev.com).
 
 
-## Preliminary steps
+- As you have to have access to dockerhub private repositories sign in into docker hub with your account
+with `docker login` any type your username and password using the stdin.
 
+```
+docker login
+```
 
 ## Steps
+
+These steps were written for an Ubuntu 18.04 machine. It is assumed that your machine has the same (or a compatible version).
+
+### Getting the scripts
 
 Clone this repository:
 
@@ -31,20 +38,44 @@ git clone git@github.com:blindsidenetworks/scalelite-run.git
 cd scalelite-run
 ```
 
-Copy  `dotenv` file located in the root of the project as `.env` and edit it
+Copy `dotenv` file located in the root of the project as `.env` and edit it
 
 ```
+cp dotenv .env
 vi .env
 ```
 
-You will need to replace both variables as in:
-`DOMAIN_ROOT=bigbluebutton.org` to the one assigned to you (e.g. `DOMAIN_ROOT=blindside-dev.com`)
-`DOMAIN_SUB=lab` to the one assigned to you (e.g. `DOMAIN_SUB=<JOHN>`)
+You need to replace the variable `HOST_NAME=sl.xlab.blindside-dev.com` with a hostname under your own domain name (e.g. `HOST_NAME=sl.john.blindside-dev.com`) or delegated sub-domain.
 
-Create your own SSL Letsencrypt certificates. As you are normally going to
-have this deployment running on your own computer (or in a private VM), you
-need to generate the SSL certificates with certbot by adding the challenge to
-your DNS.
+
+Copy `dotenv` file located in the scalelite directory as `.env` and in the same way as before, edit it:
+
+```
+cp scalelite/dotenv scalelite/.env
+vi scalelite/.env
+```
+
+You can start it as is, but you may want to replace both variables with your own values.
+
+`SECRET_KEY_BASE` is the Ruby On Rails secret key and should be replaced with a random one generated with `bundle exec rake secret`
+
+`LOADBALANCER_SECRET` is the shared secret used by external applications for accessing the Load Balancer as if it was a BigBlueButton server. By default, it includes the Secret used for test-install (which is also the first server added to the pool as example).
+
+
+### Using SSL Letsencrypt in the cloud
+
+If all the previous steps were followed properly and the machine is accessible in the Internet, only execute:
+
+```
+./init-letsencrypt.sh
+```
+
+This will generate the SSL certificates and run scalelite for the first time, so all the required files are automatically generated.
+
+
+### Using SSL Letsencrypt certificate in private Networks
+
+If you are trying to install scalelite locally or in a private network, the process is more manual. You need to generate the SSL certificates with certbot by adding the challenge to your DNS.
 
 Install letsencrypt in your own computer
 
@@ -94,20 +125,10 @@ Copy the certificates to your scalelite-run directory. Although `/etc/letsencryp
 holds the latest certificate, they are only symbolic links. The real files must be copied and renamed
 
 ```
-cp -R /etc/letsencrypt/archive/sl.<JOHN>.blindside-dev.com <YOUR ROOT>/scalelite-run/nginx/letsencrypt/live
+cp -R /etc/letsencrypt <YOUR ROOT>/scalelite-run/data/certbot/conf
 ```
 
-```
-cd <YOUR ROOT>/scalelite-run/nginx/letsencrypt/live/sl.<JOHN>.blindside-dev.com/
-mv cert1.pem cert.pem
-mv chain1.pem chain.pem
-mv fullchain1.pem fullchain.pem
-mv privkey1.pem privkey.pem
-```
-
-As you have to have access to dockerhub private repositories sign in into docker hub with your account
-with `docker login -u <YOUR_USERNAME> -p <YOUR_PASSWORD>` or `docker login -u <YOUR_USERNAME>` if you
-want to type your password using the stdin
+### Starting the application
 
 And finally, start your environment with docker-compose
 
@@ -122,3 +143,30 @@ end you will have access to scalelite through:
 ```
 https://sl.<JOHN>.blindside-dev.com/bigbluebutton/api
 ```
+
+Note that you can always run the application in the background `docker-compose up -d`
+
+### Final Steps
+
+As the only BigBlueButton Server configured by default is test-install, this comes intentionally disabled. You would have to either enable it or to add new ones. Either way this has to be done through the console.
+
+Open a new console and get the ids of the docker containers running:
+
+```
+docker ps
+```
+
+Get into the container running the api
+
+```
+docker exec -it <CONTAINER_ID> sh
+```
+
+Once inside, you can see execute all the rails commands as needed. In this case, lets assume that you want to enable the current BigBlueButton server
+
+```
+bundle exec rake servers
+bundle exec rake servers:enable["SERVER_ID_AS SHOWN"]
+```
+
+For more information on what rake commands can be executed, see scalelite documentation.
