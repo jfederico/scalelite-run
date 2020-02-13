@@ -170,3 +170,23 @@ bundle exec rake servers:enable["SERVER_ID_AS SHOWN"]
 ```
 
 For more information on what rake commands can be executed, see scalelite documentation.
+
+### Special cases
+
+#### Build your own image
+
+If you don;t have access to the DockerHub registry, you can always build your own image. Either by running `docker build` where scalelite code is placed, or using the build script provided in this repo at `scripts/build.sh`. The only advantage of using the script is that the last commit is included as the build number.
+
+```
+cd <YOUR ROOT>/scalelite
+docker build -t blindsidenetwks/scalelite:latest .
+```
+
+or
+
+```
+cd <YOUR ROOT>/scalelite
+../scalelite-run/scripts/build.sh blindsidenetwks/scalelite latest
+```
+
+Keep in mind that the docker-compose.yml script makes use of some other configuration files that are mounted inside the containers. If any modification to nginx is needed it has to be done on the sites.template file. Also, whatever name is chosen for the image should match the one used in docker-compose.yml.
