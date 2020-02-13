@@ -14,7 +14,8 @@ services:
       - ./nginx/sites.template:/etc/nginx/sites-available/sites.template
       - ./nginx/default/html:/var/www/html
       - ./nginx/log/nginx:/var/log/nginx
-      - ./nginx/letsencrypt/:/etc/letsencrypt
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
     ports:
       - "80:80"
       - "443:443"
@@ -22,7 +23,14 @@ services:
       - NGINX_HOSTNAME=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
     depends_on:
       - scalelite.api
-    command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && exec nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   redis:
     image: redis

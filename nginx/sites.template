@@ -9,6 +9,19 @@ server {
 
     listen 80;
     listen [::]:80;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    server_name $NGINX_HOSTNAME;
+
     listen 443 ssl;
     listen [::]:443;
 
