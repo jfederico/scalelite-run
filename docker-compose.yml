@@ -76,10 +76,7 @@ services:
     env_file: ./scalelite/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - DB_HOST=postgres
-      - DB_NAME=scalelite_production
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=password
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/scalelite?pool=5
       - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
 
 
@@ -98,4 +95,3 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
-      - INTERVAL=60
