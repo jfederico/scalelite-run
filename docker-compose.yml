@@ -59,7 +59,7 @@ services:
 
   scalelite.api:
     entrypoint: [bin/start]
-    image: blindsidenetwks/scalelite:master
+    image: blindsidenetwks/scalelite:latest
     restart: "no"
     ports:
       - 127.0.0.1:3000:3000
@@ -85,7 +85,7 @@ services:
 
   scalelite.poller:
     entrypoint: [bin/start-poller]
-    image: blindsidenetwks/scalelite:master
+    image: blindsidenetwks/scalelite:latest
     restart: "no"
     ports:
       - 127.0.0.1:3001:3000
