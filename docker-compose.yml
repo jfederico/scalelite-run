@@ -14,7 +14,7 @@ services:
       - ./nginx/sites.template:/etc/nginx/sites-available/sites.template
       - ./nginx/default/html:/var/www/html
       - ./nginx/log/nginx:/var/log/nginx
-      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/conf/live:/etc/letsencrypt/live
       - ./data/certbot/www:/var/www/certbot
     ports:
       - "80:80"

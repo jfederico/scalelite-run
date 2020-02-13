@@ -27,7 +27,7 @@ display_usage() {
   echo "This script should be used as part of a CI strategy."
   echo -e "Usage:\n  build_image.sh [ARGUMENTS]"
   echo -e "\nMandatory arguments \n"
-  echo -e "  repo_slug     The git repository  (e.g. bigbluebutton/greenlight)"
+  echo -e "  repo_slug     The git repository  (e.g. blindsidenetworks/scalelite)"
   echo -e "\nOptional arguments \n"
   echo -e "  branch | tag  The branch (e.g. master | release-2.0.5)"
 }
@@ -66,7 +66,7 @@ fi
 if [[ "$CD_REF_NAME" == *"v"* ]]; then
   export CD_BUILD_NUMBER=${CD_REF_NAME:1}
 else
-  export CD_BUILD_NUMBER="$CD_REF_NAME ($(expr substr $(git rev-parse HEAD) 1 7))"
+  export CD_BUILD_NUMBER="$CD_REF_NAME ($(eval git rev-parse --short=7 HEAD))"
 fi
 
 # Build the image
@@ -74,7 +74,7 @@ if [ -z $CD_DOCKER_REPO ]; then
   export CD_DOCKER_REPO=$CD_REF_SLUG
 fi
 echo "#### Docker image $CD_DOCKER_REPO:$CD_REF_NAME is being built"
-docker build --build-arg build_number="${CD_BUILD_NUMBER}" -t $CD_DOCKER_REPO:$CD_REF_NAME .
+docker build --build-arg BUILD_NUMBER="${CD_BUILD_NUMBER}" -t $CD_DOCKER_REPO:$CD_REF_NAME .
 
 if [ -z "$CD_DOCKER_USERNAME" ] || [ -z "$CD_DOCKER_PASSWORD" ]; then
   echo "#### Docker image for $CD_DOCKER_REPO can't be published because CD_DOCKER_USERNAME or CD_DOCKER_PASSWORD are missing (Ignore this warning if running outside a CD/CI environment)"
