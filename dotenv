@@ -1,3 +1,1 @@
-DOMAIN_ROOT=bigbluebutton.org
-DOMAIN_SUB=lab
-HOST_NAME=sl
+HOST_NAME=sl.xlab.blindside-dev.com

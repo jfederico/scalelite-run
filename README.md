@@ -16,8 +16,7 @@ using docker-compose.
 
   - [scalelite](https://cloud.docker.com/u/blindsidenetwks/repository/docker/blindsidenetwks/scalelite)
 
-- Make sure you have your own DNS and a public domain name or a delegated one under blindside-dev.com
-  (e.g. <JOHN>.blindside-dev.com)
+- Make sure you have your own DNS and a public domain name or a delegated one (e.g. <JOHN>.blindside-dev.com).
 
 
 ## Preliminary steps

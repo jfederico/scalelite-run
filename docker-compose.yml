@@ -20,10 +20,11 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_HOSTNAME=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - NGINX_HOSTNAME=${HOST_NAME:-sl.xlab.blindside-dev.com}
     depends_on:
       - scalelite.api
     command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+
 
   certbot:
     image: certbot/certbot
@@ -32,6 +33,7 @@ services:
       - ./data/certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
+
   redis:
     image: redis
     restart: "no"
@@ -39,6 +41,7 @@ services:
       - 127.0.0.1:6379:6379
     volumes:
       - ./data/redis/:/data
+
 
   postgres:
     image: postgres:9.5
@@ -52,6 +55,7 @@ services:
       - PGDATABASE=postgres
       - PGUSER=postgres
       - PGPASSWORD=password
+
 
   scalelite.api:
     entrypoint: [bin/start]
@@ -76,7 +80,8 @@ services:
       - DB_NAME=scalelite_production
       - DB_USERNAME=postgres
       - DB_PASSWORD=password
-      - URL_HOST=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
+
 
   scalelite.poller:
     entrypoint: [bin/start-poller]
@@ -92,5 +97,5 @@ services:
     env_file: ./scalelite/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - URL_HOST=${HOST_NAME:-sl}.${DOMAIN_SUB:-lab}.${DOMAIN_ROOT:-bigbluebutton.org}
+      - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
       - INTERVAL=60
