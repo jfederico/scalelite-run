@@ -57,7 +57,7 @@ vi scalelite/.env
 
 You can start it as is, but you may want to replace both variables with your own values.
 
-`SECRET_KEY_BASE` is the Ruby On Rails secret key and should be replaced with a random one generated with `bundle exec rake secret`
+`SECRET_KEY_BASE` is the Ruby On Rails secret key and should be replaced with a random one generated with `openssl rand -hex 64`.
 
 `LOADBALANCER_SECRET` is the shared secret used by external applications for accessing the Load Balancer as if it was a BigBlueButton server. By default, it includes the Secret used for test-install (which is also the first server added to the pool as example).
 
