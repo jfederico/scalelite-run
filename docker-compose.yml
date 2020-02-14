@@ -14,11 +14,9 @@ services:
       - ./nginx/sites.template:/etc/nginx/sites-available/sites.template
       - ./nginx/default/html:/var/www/html
       - ./nginx/log/nginx:/var/log/nginx
-## Configuration for Letsencrypt SSL Certificate
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
-## Configuration for Letsencrypt SSL Certificate
-#      - ./nginx/ssl/:/etc/ssl
+      - ./nginx/ssl/:/etc/ssl
     ports:
       - "80:80"
       - "443:443"
@@ -79,8 +77,8 @@ services:
       - ./scalelite/tmp/cache/assets:/usr/src/app/tmp/cache/assets
     env_file: ./scalelite/.env
     environment:
-      - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgres://postgres:password@postgres:5432/scalelite?pool=5
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
 
 
@@ -97,5 +95,5 @@ services:
       - ./scalelite/bin/start-poller:/srv/scalelite/bin/start-poller
     env_file: ./scalelite/.env
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
