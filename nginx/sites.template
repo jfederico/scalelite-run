@@ -25,8 +25,13 @@ server {
     listen 443 ssl;
     listen [::]:443;
 
+    ## Configuration for Letsencrypt SSL Certificate
     ssl_certificate /etc/letsencrypt/live/$NGINX_HOSTNAME/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$NGINX_HOSTNAME/privkey.pem;
+
+    ## Configuration for SSL Certificate from a CA other than Letsencrypt
+    #ssl_certificate /etc/ssl/fullchain.pem;
+    #ssl_certificate_key /etc/ssl/privkey.pem;
 
     location / {
             proxy_pass  http://docker-scalelite;

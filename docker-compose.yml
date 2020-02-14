@@ -14,8 +14,11 @@ services:
       - ./nginx/sites.template:/etc/nginx/sites-available/sites.template
       - ./nginx/default/html:/var/www/html
       - ./nginx/log/nginx:/var/log/nginx
+## Configuration for Letsencrypt SSL Certificate
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
+## Configuration for Letsencrypt SSL Certificate
+#      - ./nginx/ssl/:/etc/ssl
     ports:
       - "80:80"
       - "443:443"
@@ -26,6 +29,8 @@ services:
     command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
 
 
+## Configuration for Letsencrypt SSL Certificate
+## comment out when using an SSL Certificate from a CA other than Letsencrypt
   certbot:
     image: certbot/certbot
     volumes:
@@ -35,7 +40,7 @@ services:
 
 
   redis:
-    image: redis
+    image: redis:5.0-alpine
     restart: "no"
     ports:
       - 127.0.0.1:6379:6379
@@ -44,17 +49,16 @@ services:
 
 
   postgres:
-    image: postgres:9.5
+    image: postgres:11.7-alpine
     restart: "no"
     ports:
       - 127.0.0.1:5432:5432
     volumes:
       - ./data/postgres/:/var/lib/postgresql/data
     environment:
-      - PGHOST=postgres
-      - PGDATABASE=postgres
-      - PGUSER=postgres
-      - PGPASSWORD=password
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
 
 
   scalelite.api:

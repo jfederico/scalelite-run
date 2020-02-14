@@ -175,7 +175,7 @@ For more information on what rake commands can be executed, see scalelite docume
 
 #### Build your own image
 
-If you don;t have access to the DockerHub registry, you can always build your own image. Either by running `docker build` where scalelite code is placed, or using the build script provided in this repo at `scripts/build.sh`. The only advantage of using the script is that the last commit is included as the build number.
+If no access to the DockerHub registry is available, it is still possible to build the image. Either by running `docker build` where scalelite code is placed, or using the build script provided in this repo at `scripts/build.sh`. The only advantage of using the script is that the last commit is included as the build number.
 
 ```
 cd <YOUR ROOT>/scalelite
@@ -190,3 +190,29 @@ cd <YOUR ROOT>/scalelite
 ```
 
 Keep in mind that the docker-compose.yml script makes use of some other configuration files that are mounted inside the containers. If any modification to nginx is needed it has to be done on the sites.template file. Also, whatever name is chosen for the image should match the one used in docker-compose.yml.
+
+#### Setup SSL certificate from a CA other than letsencrypt
+
+For adding an SSL certificate from an CA other than letsencrypt,
+
+1. DO NOT execute the `./init-letsencrypt.sh` script
+
+2. Place the SSL Certificate, Intermediate Certificate (or Bundle with both of them if you have it) and Private Key files inside `nginx/ssl` as fullchain.pem and privkey.pem.
+E.g.
+```
+cd ~/
+cat your_domain_name.crt Intermediate.crt >> bundle.crt
+cp bundle.crt <YOUR ROOT>/scalelite/nginx/ssl/fullchain.pem
+cp private.key <YOUR ROOT>/scalelite/nginx/ssl/privkey.pem
+```
+
+3. Edit the template for nginx.
+```
+cd <YOUR ROOT>/scalelite
+vi nginx/sites.template
+```
+Comment the lines referencing the letsencrypt Certificate and uncomment the other two
+
+4. Comment out in `docker-compose.yml` the certbot container.
+
+5. Start the containers as usual.
