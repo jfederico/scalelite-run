@@ -1,8 +1,8 @@
 #!/bin/bash
 
-STATUS="Status: Downloaded newer image for blindsidenetwks/scalelite:master"
+STATUS="Status: Downloaded newer image for blindsidenetwks/scalelite:latest"
 
-new_status=$(sudo docker pull blindsidenetwks/scalelite:master | grep Status:)
+new_status=$(sudo docker pull blindsidenetwks/scalelite:latest | grep Status:)
 
 echo $new_status
 
