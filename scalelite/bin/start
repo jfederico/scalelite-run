@@ -1,17 +1,13 @@
 #!/bin/sh
 
-
+if [ "$LOADBALNCER_SECRET" == "loadbalancer_secret" ] || [ "$SECRET_KEY_BASE" == "secret_key_base" ]; then
+  echo "ERROR: Detected default SECRET_KEY_BASE or LOADBALANCER_SECRET. Please generate a random value."
+  echo "Exiting..."
+  exit 1
+fi
 
 servers="$(RAILS_ENV=$RAILS_ENV bundle exec rake servers 2>&1)"
 echo $servers
-
-if [ "$(echo "$servers" | cut -c0-2)" == "No" ]; then
-  echo ">>> Adding test-install as the default server"
-  bundle exec rake servers:add["https://test-install.blindsidenetworks.com/bigbluebutton/api","8cd8ef52e8e101574e400365b55e11a6"]
-  bundle exec rake servers
-  bundle exec rake status
-  echo ">>> Server added by default must be enabled using the rake command"
-fi
 
 if [ "$RAILS_ENV" = "production" ] && [ "$DB_ADAPTER" = "postgresql" ]; then
   while ! curl http://$DB_HOST:${DB_PORT:-5432}/ 2>&1 | grep '52'

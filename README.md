@@ -75,8 +75,8 @@ cp scalelite/dotenv scalelite/.env
 
 You can start it as is, but you may want to replace both variables with your own values.
 
-- `SECRET_KEY_BASE` is the Ruby On Rails secret key and should be replaced with a random one generated with `openssl rand -hex 64`.
-- `LOADBALANCER_SECRET` is the shared secret used by external applications for accessing Scalelite LoadBalancer as if it was a BigBlueButton server. By default, it includes the Secret used for test-install (which is also the first server added to the pool as example).
+- `SECRET_KEY_BASE` is the Ruby On Rails secret key and must be replaced with a random one generated with `openssl rand -hex 64`.
+- `LOADBALANCER_SECRET` is the shared secret used by external applications for accessing Scalelite LoadBalancer as if it was a BigBlueButton server. This variable must be defined in order for the application to start. A secret can be generated with `openssl rand -hex 24`
 
 ```
 vi scalelite/.env
@@ -245,7 +245,7 @@ Note that the application can be run in the background with `docker-compose up -
 <a name="initializing-pool"/>
 
 #### 4.1. Initializing pool of servers
-As the only BigBlueButton Server configured by default is test-install, it comes intentionally disabled. It has to be manually enabled or a new server added. Either option has to be done through the console.
+Since there are no servers added by default, atleast 1 server must be added and enabled in order to get started. 
 
 Open a new console and get the IDs of the docker containers running:
 
@@ -262,6 +262,7 @@ docker exec -it <CONTAINER_ID> sh
 Once inside, all the rails commands can be executed as needed. In this case, and assuming that the current current BigBlueButton server is going to be enabled.
 
 ```
+bundle exec rake servers:add[BIGBLUEBUTTON_SERVER_URL,BIGBLUEBUTTON_SERVER_SECRET]
 bundle exec rake servers
 bundle exec rake servers:enable["SERVER_ID_AS SHOWN"]
 ```
