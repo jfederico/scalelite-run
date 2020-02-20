@@ -221,7 +221,7 @@ Note that the application can be run in the background with `docker-compose up -
 <a name="initializing-pool"/>
 
 #### 4.1. Initializing pool of servers
-Since there are no servers added by default, atleast 1 server must be added and enabled in order to get started. 
+Since there are no servers added by default, atleast 1 server must be added and enabled in order to get started.
 
 Open a new console and get the IDs of the docker containers running:
 
@@ -266,18 +266,27 @@ sudo .scripts/deploy.sh
 
 <a name="rolling-out-updates-automatic"/>
 
-##### 4.2.2. Automatic updates and auto-start
+##### 4.2.2. Automatic updates
 
 Use the scripts provided.
 
 ```
-sudo ln -s /home/ubuntu/scalelite-run/scripts/deploy.sh /usr/local/bin/scalelite-deploy
-sudo cp /home/ubuntu/scalelite-run/scripts/scalelite-auto-deployer.service /etc/systemd/system/scalelite-auto-deployer.service
-sudo cp /home/ubuntu/scalelite-run/scripts/scalelite-auto-deployer.timer /etc/systemd/system/scalelite-auto-deployer.timer
+sudo ln -s <YOUR ROOT>/scalelite-run/scripts/deploy.sh /usr/local/bin/scalelite-deploy
+sudo cp <YOUR ROOT>/scalelite-run/scripts/scalelite-auto-deployer.service /etc/systemd/system/scalelite-auto-deployer.service
+sudo cp <YOUR ROOT>/scalelite-run/scripts/scalelite-auto-deployer.timer /etc/systemd/system/scalelite-auto-deployer.timer
 sudo systemctl daemon-reload
 sudo systemctl enable scalelite-auto-deployer.service
 sudo systemctl enable scalelite-auto-deployer.timer
 sudo systemctl start scalelite-auto-deployer.timer
+```
+
+<a name="starting-automatic"/>
+
+##### 4.2.3. Automatic start
+
+Use the scripts provided.
+
+```
 ```
 
 <a name="distributed-deployment"/>
