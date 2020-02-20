@@ -1,7 +1,6 @@
 # scalelite-run
 
-This document provides instructions on how to deploy scalelite behind a nginx proxy
-using docker-compose.
+This document provides instructions on how to quickly [Scalelite](https://github.com/blindsidenetworks/scalelite), a stateful BigBlueButton load balancer, using docker-compose.
 
 This can be performed as an [All-In-One-Box Deployment](#all-in-one-box-deployment) or making use of distributed services in the cloud (or virtual private cloud) through a cloud computing provider as a [Distributed Deployment](#distributed-deployment).
 
@@ -9,38 +8,15 @@ This can be performed as an [All-In-One-Box Deployment](#all-in-one-box-deployme
 
 ## Prerequisites
 
-- Install
-[docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04)
-  and
-[docker-compose](https://www.digitalocean.com/community/tutorials/how-to-install-docker-compose-on-ubuntu-18-04)
+Scalelite requires a server with 4 CPU cores and 8 Gig of memory.  Since all the component run under docker, the underlying OS need only support docker and docker-compose.
 
-- Make sure you have access to Blindside Networks repositories in
-  [dockerhub](https://cloud.docker.com/u/blindsidenetwks/repository/list) (particularly to [scalelite](https://cloud.docker.com/u/blindsidenetwks/repository/docker/blindsidenetwks/scalelite)).
+These steps were written for an Ubuntu 18.04 machine. It is assumed that your machine has the same (or a compatible version).  
 
-- Make sure you have your own public domain name (e.g. blindside-dev.com) or a delegated one (e.g. <JOHN>.blindside-dev.com) and have access to manage it through a DNS.
+You need to have a fully qualified domain name (FQDN) for the Scalelite server, such as bbb-lb.example.com, that resolves to the public IP address of the server.  
 
-<a name="preparation"/>
+To setup the server, first install both [docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04) and [docker-compose](https://www.digitalocean.com/community/tutorials/how-to-install-docker-compose-on-ubuntu-18-04).
 
-## Preparation
-
-These steps were written for an Ubuntu 18.04 machine. It is assumed that your machine has the same (or a compatible version).
-
-<a name="accessing-dockerhub"/>
-
-### 1. Accessing DockerHub
-
-If you have to have access to dockerhub private repositories sign in into docker hub with your account
-with `docker login` any type your username and password using the stdin.
-
-```
-docker login
-```
-
-<a name="getting-the-scripts"/>
-
-### 2. Getting the scripts
-
-Clone this repository:
+Next, clone the `scalelite-run` repository
 
 ```
 git clone git@github.com:blindsidenetworks/scalelite-run.git
@@ -267,7 +243,7 @@ bundle exec rake servers
 bundle exec rake servers:enable["SERVER_ID_AS SHOWN"]
 ```
 
-For more information on what rake commands can be executed, see [scalelite documentation](https://github.com/blindsidenetworks/scalelite).
+For more information on what rake commands can be executed, see [scalelite documentation](https://github.com/blindsidenetworks/scalelite#administration).
 
 <a name="rolling-out-updates"/>
 
