@@ -1,3 +1,23 @@
-HOST_NAME=sl.xlab.blindside-dev.com
-REDIS_URL=redis://redis:6379
-DATABASE_URL=postgres://postgres:password@postgres:5432/scalelite?pool=5
+### Required by scalelite-api
+# SECRET_KEY_BASE=
+# LOADBALANCER_SECRET=
+#
+### Required by scalelite-api and scalelite-poller
+# REDIS_URL=
+#
+### Required by scalelite-api and scalelite-recording-importer
+# DATABASE_URL=
+# SCALELITE_RECORDING_DIR=/mnt/scalelite-recordings/var/bigbluebutton
+#
+### Required by scalelite-nginx (only When using SSL)
+# NGINX_SSL=true
+# SCALELITE_NGINX_EXTRA_OPTS=--mount type=bind,source=/etc/letsencrypt,target=/etc/nginx/ssl,readonly
+# URL_HOST=
+#
+### Required when when specific repo or version (other than defaults) are needed
+# SCALELITE_REPO=blindsidenetwks
+# SCALELITE_TAG=v1
+#
+### Optional for postgres when using docker-compose
+# POSTGRES_USER=
+# POSTGRES_PASSWORD=

@@ -1,5 +1,0 @@
-#!/bin/sh
-
-echo "Poller is starting..."
-exec tini -- bundle exec rake poll["$INTERVAL"]
-#tail -f /dev/null

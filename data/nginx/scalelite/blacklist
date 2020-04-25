@@ -1,0 +1,9 @@
+## Deny access to IPs or subnets.
+# deny IP;
+# deny subnet;
+# e.g.
+# deny 192.168.0.1;
+# deny 192.168.0.0/24;
+
+## Allow access to everything else.
+allow    all;

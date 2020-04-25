@@ -1,9 +1,0 @@
-[Unit]
-Description=ScaleLite Auto Deployer
-
-[Service]
-ExecStart=/bin/bash /opt/scalelite-run/scripts/deploy.sh
-
-[Install]
-WantedBy=multi-user.target
-Alias=scalelite-auto-deployer

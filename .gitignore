@@ -1,7 +1,5 @@
 .env
 
-/data*
-
 /nginx/log*
 /nginx/sites-available*
 /nginx/sites-enabled*
@@ -11,3 +9,10 @@
 
 /scalelite/log*
 /scalelite/tmp*
+
+/data/*
+!/data/nginx/
+
+/tmp*
+
+/log*

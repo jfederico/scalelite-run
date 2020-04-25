@@ -1,99 +1,100 @@
 version: '3'
 
 volumes:
-  database_data:
-    driver: local
+  postgres-data:
+  redis-data:
 
 services:
-  nginx:
-    image: nginx:latest
-    restart: "no"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
-      - ./nginx/sites.template:/etc/nginx/sites-available/sites.template
-      - ./nginx/default/html:/var/www/html
-      - ./nginx/log/nginx:/var/log/nginx
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-      - ./nginx/ssl/:/etc/ssl
+  postgres:
+    image: postgres:11.5-alpine
+    container_name: postgres
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     environment:
-      - NGINX_HOSTNAME=${HOST_NAME:-sl.xlab.blindside-dev.com}
-    depends_on:
-      - scalelite.api
-    command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
 
+  redis:
+    image: redis:5.0-alpine
+    container_name: redis
+    restart: on-failure
+    ports:
+      - 127.0.0.1:6379:6379
+    volumes:
+      - redis-data:/data
 
-## Configuration for Letsencrypt SSL Certificate
-## comment out when using an SSL Certificate from a CA other than Letsencrypt
   certbot:
     image: certbot/certbot
+    container_name: certbot
     volumes:
+      - ./log/certbot:/var/log/letsencrypt
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
-
-  redis:
-    image: redis:5.0-alpine
-    restart: "no"
+  scalelite-nginx:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-nginx
+    container_name: scalelite-nginx
+    restart: unless-stopped
     ports:
-      - 127.0.0.1:6379:6379
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./data/redis/:/data
-
-
-  postgres:
-    image: postgres:11.7-alpine
-    restart: "no"
-    ports:
-      - 127.0.0.1:5432:5432
-    volumes:
-      - ./data/postgres/:/var/lib/postgresql/data
+      - ./log/nginx/:/var/log/nginx
+      - ./data/certbot/conf:/etc/nginx/ssl
+      - ./data/certbot/www:/var/www/certbot
+      - ./data/nginx/scalelite:/etc/nginx/conf.d/scalelite
+      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - NGINX_SSL=${NGINX_SSL-true}
+      - URL_HOST=${URL_HOST}
+    depends_on:
+      - scalelite-api
 
-
-  scalelite.api:
-    entrypoint: [bin/start]
-    image: blindsidenetwks/scalelite:latest
-    restart: "no"
+  scalelite-api:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-api
+    container_name: scalelite-api
+    restart: unless-stopped
     ports:
-      - 127.0.0.1:3000:3000
-    links:
-      - redis
-      - postgres
+      - "3000:3000"
     volumes:
-      - ./scalelite/log/api:/srv/scalelite/log
-      - ./scalelite/bin/start:/srv/scalelite/bin/start
-      - ./scalelite/config/database.yml:/srv/scalelite/config/database.yml
-      - ./scalelite/tmp/pids/:/usr/src/app/tmp/pids
-      - ./scalelite/tmp/sockets/:/usr/src/app/tmp/sockets
-      - ./scalelite/tmp/cache/assets:/usr/src/app/tmp/cache/assets
-    env_file: ./scalelite/.env
+      - ./log/scalelite/:/app/log
+      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
+    environment:
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - LOADBALANCER_SECRET=${LOADBALANCER_SECRET}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
+      - URL_HOST=${URL_HOST}
+    depends_on:
+      - postgres
+      - redis
+
+  scalelite-poller:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-poller
+    container_name: scalelite-poller
+    restart: unless-stopped
     environment:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
-      - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
-
-
-  scalelite.poller:
-    entrypoint: [bin/start-poller]
-    image: blindsidenetwks/scalelite:latest
-    restart: "no"
-    ports:
-      - 127.0.0.1:3001:3000
-    links:
+    depends_on:
+      - postgres
       - redis
-    volumes:
-      - ./scalelite/log/poller:/srv/scalelite/log
-      - ./scalelite/bin/start-poller:/srv/scalelite/bin/start-poller
-    env_file: ./scalelite/.env
+      - scalelite-api
+
+  scalelite-recording-importer:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-recording-importer
+    container_name: scalelite-recording-importer
+    restart: unless-stopped
     environment:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - URL_HOST=${HOST_NAME:-sl.xlab.blindside-dev.com}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
+    volumes:
+      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
+    depends_on:
+      - postgres
+      - redis
+      - scalelite-api

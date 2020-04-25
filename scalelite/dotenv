@@ -1,2 +1,0 @@
-SECRET_KEY_BASE=secret_key_base
-LOADBALANCER_SECRET=loadbalancer_secret
