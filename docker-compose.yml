@@ -94,6 +94,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
     volumes:
       - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
+      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/spool:/var/bigbluebutton/spool
     depends_on:
       - postgres
       - redis
