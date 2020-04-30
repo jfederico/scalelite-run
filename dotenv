@@ -21,3 +21,7 @@
 ### Optional for postgres when using docker-compose
 # POSTGRES_USER=
 # POSTGRES_PASSWORD=
+#
+### Optional for init-letsencrypt.sh when using certbot for generating signed SSL certificates
+#LETSENCRYPT_EMAIL=
+#LETSENCRYPT_STAGING=0 # Set to 1 if you're testing your setup to avoid hitting request limits
