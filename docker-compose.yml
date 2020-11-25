@@ -54,8 +54,6 @@ services:
     image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-api
     container_name: scalelite-api
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     volumes:
       - ./log/scalelite/:/app/log
       - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
