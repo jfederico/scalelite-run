@@ -9,6 +9,8 @@ services:
     image: postgres:11.5-alpine
     container_name: postgres
     restart: unless-stopped
+    ports:
+      - "127.0.0:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
@@ -19,6 +21,8 @@ services:
     image: redis:5.0-alpine
     container_name: redis
     restart: on-failure
+    ports:
+      - 127.0.0.1:6379:6379
     volumes:
       - redis-data:/data
 
