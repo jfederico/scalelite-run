@@ -10,25 +10,16 @@ groupadd -g 2000 scalelite-spool
 echo 'Add the bigbluebutton user to the group...'
 usermod -a -G scalelite-spool bigbluebutton
 
-echo 'Create the spool directory for recording transfer from BigBlueButton...'
-mkdir -p /mnt/scalelite-recordings/var/bigbluebutton/spool
-chown 1000:2000 /mnt/scalelite-recordings/var/bigbluebutton/spool
-chmod 0775 /mnt/scalelite-recordings/var/bigbluebutton/spool
-mkdir /var/bigbluebutton/
-ln -s /mnt/scalelite-recordings/var/bigbluebutton/spool /var/bigbluebutton/spool
+echo 'Create the directory structure for storing recording ...'
+mkdir -p /var/bigbluebutton/spool
+mkdir -p /var/bigbluebutton/recording/scalelite
+mkdir -p /var/bigbluebutton/published
+mkdir -p /var/bigbluebutton/unpublished
+chown -R 1000:2000 /var/bigbluebutton/
+chmod -R 0775 /var/bigbluebutton/
 
-echo 'Create the temporary (working) directory for recording import...'
-mkdir -p /mnt/scalelite-recordings/var/bigbluebutton/recording/scalelite
-chown 1000:1000 /mnt/scalelite-recordings/var/bigbluebutton/recording/scalelite
-chmod 0775 /mnt/scalelite-recordings/var/bigbluebutton/recording/scalelite
-
-echo 'Create the directory for published recordings...'
-mkdir -p /mnt/scalelite-recordings/var/bigbluebutton/published
-chown 1000:1000 /mnt/scalelite-recordings/var/bigbluebutton/published
-chmod 0775 /mnt/scalelite-recordings/var/bigbluebutton/published
-
-echo 'Create the directory for unpublished recordings...'
-mkdir -p /mnt/scalelite-recordings/var/bigbluebutton/unpublished
-chown 1000:1000 /mnt/scalelite-recordings/var/bigbluebutton/unpublished
-chmod 0775 /mnt/scalelite-recordings/var/bigbluebutton/unpublished
-
+echo 'Create the mouniting point directory for recording transfer from BigBlueButton...'
+mkdir -p /mnt/scalelite-recordings/var
+chown -R 1000:2000 /mnt/scalelite-recordings/
+chmod -R 0775 /mnt/scalelite-recordings/
+ln -s /var/bigbluebutton /mnt/scalelite-recordings/var/bigbluebutton
