@@ -5,6 +5,11 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
+if [[ ! -f ./.env ]]; then
+  echo ".env file does not exist on your filesystem."
+  exit 1
+fi
+
 URL_HOST=$(grep URL_HOST .env | cut -d '=' -f2)
 echo $URL_HOST
 
