@@ -12,6 +12,7 @@ EXAMPLES:
 Sample options for setup a BigBlueButton server
     -s scalelite.example.com
 HERE
+exit 0
 }
 
 main() {
