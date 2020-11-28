@@ -54,8 +54,13 @@ main "$@" || exit 1
 
 
 # We can proceed with the setup
-echo 'Create a new group with GID 2000...'
-groupadd -g 2000 scalelite-spool
+if grep -q scalelite-spool /etc/group
+then
+  echo "Group <scalelite-spool> exists"
+else
+  echo "Group <scalelite-spool> does not exist. Create it with GID 2000..."
+  groupadd -g 2000 scalelite-spool
+fi
 echo 'Add the bigbluebutton user to the group...'
 usermod -a -G scalelite-spool bigbluebutton
 
@@ -66,14 +71,22 @@ wget -O post_publish_scalelite.rb https://raw.githubusercontent.com/blindsidenet
 echo 'Add recording transfer settings...'
 cd /usr/local/bigbluebutton/core/scripts
 wget https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite.yml
-echo "spool_dir: bigbluebutton@$HOST:/var/bigbluebutton/spool" | tee -a /usr/local/bigbluebutton/core/scripts
+echo "spool_dir: bigbluebutton@$HOST:/var/bigbluebutton/spool" | tee -a /usr/local/bigbluebutton/core/scripts/scalelite.yml
 
 echo 'Generate ssh key pair...'
-mkdir /home/bigbluebutton
-chown bigbluebutton.bigbluebutton /home/bigbluebutton/
+if [ -z "/home/bigbluebutton" ]; then
+  mkdir /home/bigbluebutton
+  chown bigbluebutton.bigbluebutton /home/bigbluebutton/
+fi
 su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa"
 
-echo 'Add this key to /home/bigbluebutton/.ssh/authorized_keys in scalelite:'
-cat /home/bigbluebutton/.ssh/scalelite.pub
-
-echo 'done'
+public_key=$(cat my_file)
+set +x
+echo
+echo
+echo "Add this key to /home/bigbluebutton/.ssh/authorized_keys in scalelite:"
+echo
+echo "$public_key"
+echo
+echo
+exit 0
