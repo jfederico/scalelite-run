@@ -1,13 +1,39 @@
-#!/bin/bash
+#!/bin/bash -ex
 
-if [[ ! -f ./.env ]]; then
-  echo ".env file does not exist on your filesystem."
-  exit 1
+usage() {
+    set +x
+    cat 1>&2 <<HERE
+Script for integrating BigBlueButton Recordings with Scaleite.
+USAGE:
+    wget -qO- https://raw.githubusercontent.com/jfederico/scalelite-run/master/init-recordings-bigbluebutton.sh | bash -s -- [OPTIONS]
+OPTIONS
+  -s <scalelite-hostname>          Configure server with <scalelite-hostname> (required)
+EXAMPLES:
+Sample options for setup a BigBlueButton server
+    -s scalelite.example.com
+HERE
+}
+
+main() {
+  export DEBIAN_FRONTEND=noninteractive
+  while builtin getopts "s" opt "${@}"; do
+
+    case $opt in
+      s)
+        HOST=$OPTARG
+        if [ "$HOST" == "scalelite.example.com" ]; then
+          err "You must specify a valid hostname (not the hostname given in the docs)."
+        fi
+        ;;
+    esac
+done
+
+if [ ! -z "$HOST" ]; then
+  check_host $HOST
 fi
 
-URL_HOST=$(grep URL_HOST .env | cut -d '=' -f2)
-echo $URL_HOST
 
+# We can proceed with the setup
 echo 'Create a new group with GID 2000...'
 groupadd -g 2000 scalelite-spool
 echo 'Add the bigbluebutton user to the group...'
@@ -31,3 +57,13 @@ echo 'Add this key to /home/bigbluebutton/.ssh/authorized_keys in scalelite:'
 cat /home/bigbluebutton/.ssh/scalelite.pub
 
 echo 'done'
+
+check_host() {
+  if [ [ -z "$HOST" ] then
+    need_pkg dnsutils apt-transport-https net-tools
+    DIG_IP=$(dig +short $1 | grep '^[.0-9]*$' | tail -n1)
+    if [ -z "$DIG_IP" ]; then err "Unable to resolve $1 to an IP address using DNS lookup.";  fi
+    get_IP $1
+    if [ "$DIG_IP" != "$IP" ]; then err "DNS lookup for $1 resolved to $DIG_IP but didn't match local $IP."; fi
+  fi
+}
