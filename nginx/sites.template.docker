@@ -1,0 +1,54 @@
+#### For <$URL_HOST>
+
+upstream docker-scalelite {
+    server scalelite1-nginx:80 max_fails=3 fail_timeout=30s;
+    server scalelite2-nginx:80 max_fails=3 fail_timeout=30s;
+}
+
+server {
+    server_name $URL_HOST;
+
+    listen  80;
+    listen [::]:80;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return  301 https://$host$request_uri;
+    }
+}
+
+server {
+    server_name $URL_HOST;
+
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    ## Configuration for Letsencrypt SSL Certificate
+    ssl_certificate /etc/letsencrypt/live/$URL_HOST/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$URL_HOST/privkey.pem;
+
+    ## Configuration for SSL Certificate from a CA other than LetsEncrypt
+    #ssl_certificate /etc/ssl/fullchain.pem;
+    #ssl_certificate_key /etc/ssl/privkey.pem;
+
+    location / {
+        proxy_pass  http://docker-scalelite;
+
+        proxy_read_timeout 60s;
+        proxy_redirect off;
+
+        proxy_set_header  Host $http_host;
+
+        proxy_set_header  X-Real-IP $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_set_header  X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}

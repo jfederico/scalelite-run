@@ -25,3 +25,9 @@
 ### Optional for init-letsencrypt.sh when using certbot for generating signed SSL certificates
 #LETSENCRYPT_EMAIL=
 #LETSENCRYPT_STAGING=0 # Set to 1 if you're testing your setup to avoid hitting request limits
+#
+### Optional for running Scalelite behind a Proxy
+# BEHIND_PROXY= #Set to true or false
+#
+### Optional for running Scalelite on machines with more than one CPU
+# WEB_CONCURRENCY= # The value should be up to the number of CPUs in the machine
