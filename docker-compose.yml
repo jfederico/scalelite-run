@@ -67,8 +67,6 @@ services:
     depends_on:
       - postgres
       - redis
-    logging:
-      driver: journald
 
   scalelite-poller:
     image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-poller
@@ -81,8 +79,6 @@ services:
       - postgres
       - redis
       - scalelite-api
-    logging:
-      driver: journald
 
   scalelite-recording-importer:
     image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-recording-importer
@@ -98,5 +94,3 @@ services:
       - postgres
       - redis
       - scalelite-api
-    logging:
-      driver: journald
