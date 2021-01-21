@@ -50,6 +50,19 @@ err() {
   exit 1
 }
 
+need_pkg() {
+  check_root
+
+  if [ ! "$SOURCES_FETCHED" = true ]; then
+    apt-get update
+    SOURCES_FETCHED=true
+  fi
+
+  if ! dpkg -s ${@:1} >/dev/null 2>&1; then
+    LC_CTYPE=C.UTF-8 apt-get install -yq ${@:1}
+  fi
+}
+
 main "$@" || exit 1
 
 
@@ -61,32 +74,46 @@ else
   echo "Group <scalelite-spool> does not exist. Create it with GID 2000..."
   groupadd -g 2000 scalelite-spool
 fi
-echo 'Add the bigbluebutton user to the group...'
+
+if grep -q bigbluebutton /etc/passwd
+then
+  echo "User <bigbluebutton> exists"
+else
+  echo 'User <bigbluebutton> does not exist. Add the bigbluebutton user using group <scalelite-spool>...'
+  useradd -m -d /home/bigbluebutton -s /bin/bash bigbluebutton
+fi
 usermod -a -G scalelite-spool bigbluebutton
+
+if [ -z "/home/bigbluebutton" ]
+then
+  echo "Home Directory for <bigbluebutton> was found"
+else
+  echo "Home Directory for <bigbluebutton> was not found"
+  mkdir /home/bigbluebutton
+  chown bigbluebutton.bigbluebutton /home/bigbluebutton/
+fi
+
+echo 'Generate ssh key pair...'
+su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa"
 
 echo 'Add recording transfer scripts...'
 cd /usr/local/bigbluebutton/core/scripts/post_publish
+rm scalelite_post_publish.rb
 wget -O post_publish_scalelite.rb https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite_post_publish.rb
 
 echo 'Add recording transfer settings...'
 cd /usr/local/bigbluebutton/core/scripts
+rm scalelite.yml
 wget https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite.yml
 echo "spool_dir: bigbluebutton@$HOST:/var/bigbluebutton/spool" | tee -a /usr/local/bigbluebutton/core/scripts/scalelite.yml
 
-echo 'Generate ssh key pair...'
-if [ -z "/home/bigbluebutton" ]; then
-  mkdir /home/bigbluebutton
-  chown bigbluebutton.bigbluebutton /home/bigbluebutton/
-fi
-su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa"
-
-public_key=$(cat my_file)
+public_key=$(cat /home/bigbluebutton/.ssh/id_rsa.pub)
 set +x
-echo
-echo
+echo "**********************************************************************"
 echo "Add this key to /home/bigbluebutton/.ssh/authorized_keys in scalelite:"
+echo "**********************************************************************"
 echo
 echo "$public_key"
 echo
-echo
+echo "**********************************************************************"
 exit 0
