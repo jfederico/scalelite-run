@@ -19,7 +19,7 @@ services:
     image: redis:5.0-alpine
     command: ["redis-server", "--appendonly", "yes"]
     container_name: redis
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - redis-data:/data
 
