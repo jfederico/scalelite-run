@@ -37,6 +37,10 @@ main() {
   fi
 }
 
+check_root() {
+  if [ $EUID != 0 ]; then err "You must run this command as root."; fi
+}
+
 check_host() {
   if [ ! -z "$HOST" ]; then
     need_pkg dnsutils apt-transport-https net-tools
