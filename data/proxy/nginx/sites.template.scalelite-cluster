@@ -1,0 +1,77 @@
+#### For <$NGINX_HOSTNAME>
+
+upstream docker-scalelite-api {
+    server scalelite-api-1:80 max_fails=3 fail_timeout=30s;
+    server scalelite-api-2:80 max_fails=3 fail_timeout=30s;
+}
+
+upstream docker-scalelite-recordings {
+    server scalelite-recordings-1:80  max_fails=3 fail_timeout=30s;
+    server scalelite-recordings-2:80  max_fails=3 fail_timeout=30s;
+}
+
+server {
+    server_name $NGINX_HOSTNAME;
+
+    listen  80;
+    listen [::]:80;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return  301 https://$host$request_uri;
+    }
+}
+
+server {
+    server_name $NGINX_HOSTNAME;
+
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    ## Configuration for Letsencrypt SSL Certificate
+    ssl_certificate /etc/letsencrypt/live/$NGINX_HOSTNAME/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$NGINX_HOSTNAME/privkey.pem;
+
+    ## Configuration for SSL Certificate from a CA other than LetsEncrypt
+    #ssl_certificate /etc/ssl/fullchain.pem;
+    #ssl_certificate_key /etc/ssl/privkey.pem;
+
+    location /bigbluebutton/api/ {
+        proxy_pass  http://docker-scalelite-api;
+
+        proxy_read_timeout 60s;
+        proxy_redirect off;
+
+        proxy_set_header  Host $http_host;
+
+        proxy_set_header  X-Real-IP $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_set_header  X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location / {
+        proxy_pass  http://docker-scalelite-recordings;
+
+        proxy_read_timeout 60s;
+        proxy_redirect off;
+
+        proxy_set_header  Host $http_host;
+
+        proxy_set_header  X-Real-IP $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_set_header  X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}

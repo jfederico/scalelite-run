@@ -1,17 +1,16 @@
 .env
 
-/nginx/log*
-/nginx/sites-available*
-/nginx/sites-enabled*
-/nginx/letsencrypt/live/*
-
 /redis/log*
 
 /scalelite/log*
 /scalelite/tmp*
 
 /data/*
-!/data/nginx/
+/data/proxy/nginx/log/*
+!/data/proxy/nginx/log/.keep
+/data/proxy/nginx/sites-enabled/*
+!/data/proxy/nginx/sites-enabled/.keep
+!/data/proxy/
 
 /tmp*
 
