@@ -1,0 +1,19 @@
+SECRET_KEY_BASE=secret
+LOADBALANCER_SECRET=secret
+URL_HOST=sl.example.com
+
+SCALELITE_REPO=blindsidenetwks
+SCALELITE_TAG=master
+
+DB_DISABLED: "false"
+POLL_INTERVAL: "60"
+RECORDING_DISABLED: "false"
+RECORDING_IMPORT_POLL: "true"
+RECORDING_IMPORT_POLL_INTERVAL: "60"
+
+DOCKER_VOL_SCALELITE_API=/home/ubuntu/scalelite-run/data/scalelite
+DOCKER_VOL_POSTGRES_DATA=/home/ubuntu/scalelite-run/data/postgres
+DOCKER_VOL_REDIS_DATA=/home/ubuntu/scalelite-run/data/redis
+
+DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy
+#DOCKER_PROXY_NGINX_TEMPLATE=scalelite-local

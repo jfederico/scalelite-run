@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
@@ -38,6 +40,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis-data-dev:/data
+    ports:
+      - "6379:6379"
 
   certbot:
     image: certbot/certbot
