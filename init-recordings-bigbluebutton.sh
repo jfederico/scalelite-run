@@ -88,7 +88,7 @@ else
 fi
 usermod -a -G scalelite-spool bigbluebutton
 
-if [ -z "/home/bigbluebutton" ]
+if [ -d "/home/bigbluebutton" ]
 then
   echo "Home Directory for <bigbluebutton> was found"
 else
@@ -98,18 +98,35 @@ else
 fi
 
 echo 'Generate ssh key pair...'
-su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa"
+su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa" || true
+
+echo 'Generate ssh config...'
+if [ -f "/home/bigbluebutton/.ssh/config" ]; then
+  echo "file /home/bigbluebutton/.ssh/config exists"
+  rm /home/bigbluebutton/.ssh/config
+fi
+echo "Host scalelite-spool" | sudo tee -a /home/bigbluebutton/.ssh/config
+echo "  HostName $HOST" | sudo tee -a /home/bigbluebutton/.ssh/config
+echo "  User bigbluebutton" | sudo tee -a /home/bigbluebutton/.ssh/config
+echo "  IdentityFile /home/bigbluebutton/.ssh/id_rsa" | sudo tee -a /home/bigbluebutton/.ssh/config
 
 echo 'Add recording transfer scripts...'
-cd /usr/local/bigbluebutton/core/scripts/post_publish
-rm scalelite_post_publish.rb
-wget -O post_publish_scalelite.rb https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite_post_publish.rb
+POST_PUBLISH_DIR=/usr/local/bigbluebutton/core/scripts/post_publish
+if [ -f "$POST_PUBLISH_DIR/scalelite_post_publish.rb" ]; then
+   echo "file $POST_PUBLISH_DIR/scalelite_post_publish.rb exists"
+   rm $POST_PUBLISH_DIR/scalelite_post_publish.rb
+fi
+wget -O post_publish_scalelite.rb -P $POST_PUBLISH_DIR https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite_post_publish.rb
 
 echo 'Add recording transfer settings...'
-cd /usr/local/bigbluebutton/core/scripts
-rm scalelite.yml
-wget https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite.yml
-echo "spool_dir: bigbluebutton@$HOST:/var/bigbluebutton/spool" | tee -a /usr/local/bigbluebutton/core/scripts/scalelite.yml
+CORE_SCRIPTS_DIR=/usr/local/bigbluebutton/core/scripts
+if [ -f "$CORE_SCRIPTS_DIR/scalelite.yml" ]; then
+   echo "file $CORE_SCRIPTS_DIR/scalelite.yml exists"
+   rm $CORE_SCRIPTS_DIR/scalelite.yml
+fi
+wget https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite.yml -P $CORE_SCRIPTS_DIR
+sed -e '/spool_dir/ s/^#*/#/' -i $CORE_SCRIPTS_DIR/scalelite.yml
+echo "spool_dir: bigbluebutton@sl-spool:/var/bigbluebutton/spool" | tee -a $CORE_SCRIPTS_DIR/scalelite.yml
 
 public_key=$(cat /home/bigbluebutton/.ssh/id_rsa.pub)
 set +x

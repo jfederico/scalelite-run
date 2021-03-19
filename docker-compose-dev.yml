@@ -120,7 +120,7 @@ services:
       - LOADBALANCER_SECRET=${LOADBALANCER_SECRET}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
-      - URL_HOST=${URL_HOST}
+      - RECORDING_DISABLED=${RECORDING_DISABLED-false}
     depends_on:
       - postgres
       - redis

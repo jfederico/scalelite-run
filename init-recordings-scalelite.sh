@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source ./.env
+SCALELITE_RECORDING_DIR=${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}
+SCALELITE_RECORDING_DIR_ROOT=$(dirname $(dirname $SCALELITE_RECORDING_DIR))
+
 echo 'Add the bigbluebutton user...'
 useradd -m -d /home/bigbluebutton -s /bin/bash bigbluebutton
 su - bigbluebutton -s /bin/bash -c 'mkdir ~/.ssh && touch ~/.ssh/authorized_keys'
@@ -10,16 +14,13 @@ groupadd -g 2000 scalelite-spool
 echo 'Add the bigbluebutton user to the group...'
 usermod -a -G scalelite-spool bigbluebutton
 
-echo 'Create the directory structure for storing recording ...'
-mkdir -p /var/bigbluebutton/spool
-mkdir -p /var/bigbluebutton/recording/scalelite
-mkdir -p /var/bigbluebutton/published
-mkdir -p /var/bigbluebutton/unpublished
-chown -R 1000:2000 /var/bigbluebutton/
-chmod -R 0775 /var/bigbluebutton/
+echo 'Create the directory structure for recording ...'
+mkdir -p $SCALELITE_RECORDING_DIR_ROOT/var/bigbluebutton/spool
+mkdir -p $SCALELITE_RECORDING_DIR_ROOT/var/bigbluebutton/recording/scalelite
+mkdir -p $SCALELITE_RECORDING_DIR_ROOT/var/bigbluebutton/published
+mkdir -p $SCALELITE_RECORDING_DIR_ROOT/var/bigbluebutton/unpublished
+chown -R 1000:2000 $SCALELITE_RECORDING_DIR_ROOT/
+chmod -R 0775 $SCALELITE_RECORDING_DIR_ROOT/
 
-echo 'Create the mouniting point directory for recording transfer from BigBlueButton...'
-mkdir -p /mnt/scalelite-recordings/var
-chown -R 1000:2000 /mnt/scalelite-recordings/
-chmod -R 0775 /mnt/scalelite-recordings/
-ln -s /var/bigbluebutton /mnt/scalelite-recordings/var/bigbluebutton
+echo 'Create symbolic link to the directory structure for uploading ...'
+ln -s $SCALELITE_RECORDING_DIR_ROOT/var/bigbluebutton /var/bigbluebutton
