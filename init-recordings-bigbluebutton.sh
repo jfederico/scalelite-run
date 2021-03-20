@@ -126,7 +126,7 @@ if [ -f "$CORE_SCRIPTS_DIR/scalelite.yml" ]; then
 fi
 wget https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite.yml -P $CORE_SCRIPTS_DIR
 sed -e '/spool_dir/ s/^#*/#/' -i $CORE_SCRIPTS_DIR/scalelite.yml
-echo "spool_dir: bigbluebutton@sl-spool:/var/bigbluebutton/spool" | tee -a $CORE_SCRIPTS_DIR/scalelite.yml
+echo "spool_dir: bigbluebutton@scalelite-spool:/var/bigbluebutton/spool" | tee -a $CORE_SCRIPTS_DIR/scalelite.yml
 
 public_key=$(cat /home/bigbluebutton/.ssh/id_rsa.pub)
 set +x

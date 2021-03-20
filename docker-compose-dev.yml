@@ -77,34 +77,13 @@ services:
     logging:
       driver: journald
 
-  scalelite-nginx:
-    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-nginx
-    container_name: scalelite-nginx
-    restart: unless-stopped
-    # ports:
-    #   - "80:80"
-    #   - "443:443"
-    volumes:
-      - ./log/nginx/:/var/log/nginx
-      - ./data/certbot/conf/:/etc/nginx/ssl
-      - ./data/certbot/www/:/var/www/certbot
-      - ./data/nginx/scalelite/:/etc/nginx/conf.d/scalelite
-      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
-    environment:
-      - NGINX_SSL=${NGINX_SSL-true}
-      - URL_HOST=${URL_HOST}
-    depends_on:
-      - scalelite-api
-
   scalelite-recordings:
-    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-nginx
+    image: bigbluebutton/bbb-playback-proxy:bionic-23-dev-alpine3.11
     container_name: scalelite-recordings
     restart: unless-stopped
     volumes:
       - ./log/recordings/:/var/log/nginx
       - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
-    environment:
-      - NGINX_RECORDINGS_ONLY=true
     depends_on:
       - scalelite-api
 
