@@ -23,7 +23,9 @@ services:
     volumes:
       - redis-data:/data
 
-  certbot:
+certbot:
+# if you wan't to use your own CA with Scale, e.g. in an LAN environment, then comment out the 
+# whole certbot container
     image: certbot/certbot
     container_name: certbot
     volumes:
@@ -41,6 +43,13 @@ services:
       - "443:443"
     volumes:
       - ./log/nginx/:/var/log/nginx
+# if you wan't to use your own CA with Scale, e.g. in an LAN environment, then comment out all certbot volumes
+# mount a local dir with certs expected by Nginx
+#  Format:
+#       ./certs/live/${URL_HOST}/fullchain.pem
+#       ./certs/live/${URL_HOST}/privkey.pem
+#
+#       - ./certs:/etc/nginx/ssl
       - ./data/certbot/conf:/etc/nginx/ssl
       - ./data/certbot/www:/var/www/certbot
       - ./data/nginx/scalelite:/etc/nginx/conf.d/scalelite
@@ -64,6 +73,11 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - URL_HOST=${URL_HOST}
+# tell the Api Container about your root CA by setting this env variable
+#       - SSL_CERT_FILE=/usr/local/share/ca-certificates/Rootca.crt
+#     volumes:
+# mount dir with root CA file, see SSL_CERT_FILE
+#       - ./certs:/usr/local/share/ca-certificates
     depends_on:
       - postgres
       - redis
@@ -77,6 +91,11 @@ services:
     environment:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
+# tell the Poller Container about your root CA by setting this env variable
+#      - SSL_CERT_FILE=/usr/local/share/ca-certificates/Rootca.crt
+    volumes:
+# mount dir with root CA file, see SSL_CERT_FILE
+#      - ./certs/poller:/usr/local/share/ca-certificates 
     depends_on:
       - postgres
       - redis
