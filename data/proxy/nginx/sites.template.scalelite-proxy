@@ -37,39 +37,28 @@ server {
     #ssl_certificate /etc/ssl/fullchain.pem;
     #ssl_certificate_key /etc/ssl/privkey.pem;
 
+    location /health_check {
+        proxy_pass  http://docker-scalelite-api;
+        include /etc/nginx/sites-common;
+    }
+
     location /bigbluebutton/api/ {
         proxy_pass  http://docker-scalelite-api;
+        include /etc/nginx/sites-common;
+    }
 
-        proxy_read_timeout 60s;
-        proxy_redirect off;
+    location /presentation {
+        proxy_pass  http://docker-scalelite-recordings;
+        include /etc/nginx/sites-common;
+    }
 
-        proxy_set_header  Host $http_host;
-
-        proxy_set_header  X-Real-IP $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_set_header  X-Forwarded-Proto $scheme;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+    location /playback {
+        proxy_pass  http://docker-scalelite-recordings;
+        include /etc/nginx/sites-common;
     }
 
     location / {
-        proxy_pass  http://docker-scalelite-recordings;
-
-        proxy_read_timeout 60s;
-        proxy_redirect off;
-
-        proxy_set_header  Host $http_host;
-
-        proxy_set_header  X-Real-IP $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        proxy_set_header  X-Forwarded-Proto $scheme;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_pass http://docker-scalelite-api/health_check;
+        include /etc/nginx/sites-common;
     }
 }

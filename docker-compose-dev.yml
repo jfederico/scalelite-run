@@ -53,15 +53,13 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   scalelite-proxy:
-    image: nginx:latest
+    image: nginx:1.18
     container_name: scalelite-proxy
     restart: unless-stopped
     volumes:
       - ./data/proxy/nginx/log/:/var/log/nginx
-      - ./data/proxy/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./data/proxy/nginx/sites-enabled:/etc/nginx/sites-enabled
-      - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites-available/sites.template
-      - ./data/proxy/nginx/default/html/:/var/www/html
+      - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites.template
+      - ./data/proxy/nginx/sites-common:/etc/nginx/sites-common
       - ./data/certbot/conf/:/etc/letsencrypt
       - ./data/certbot/www/:/var/www/certbot
     ports:
@@ -73,7 +71,7 @@ services:
       - certbot
       - scalelite-api
       - scalelite-recordings
-    command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites-available/sites.template > /etc/nginx/sites-enabled/sites.conf && exec nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites.template > /etc/nginx/conf.d/sites.conf && exec nginx -g 'daemon off;'"
     logging:
       driver: journald
 
