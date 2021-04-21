@@ -47,12 +47,12 @@ server {
         include /etc/nginx/sites-common;
     }
 
-    location /presentation {
+    location /presentation/ {
         proxy_pass  http://docker-scalelite-recordings;
         include /etc/nginx/sites-common;
     }
 
-    location /playback {
+    location /playback/ {
         proxy_pass  http://docker-scalelite-recordings;
         include /etc/nginx/sites-common;
     }

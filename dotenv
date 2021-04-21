@@ -14,9 +14,15 @@
 # SCALELITE_NGINX_EXTRA_OPTS=--mount type=bind,source=/etc/letsencrypt,target=/etc/nginx/ssl,readonly
 # URL_HOST=
 #
-### Required when when specific repo or version (other than defaults) are needed
+### Required when when specific repo or version (other than defaults) are needed (DEPRECATED)
 # SCALELITE_REPO=blindsidenetwks
 # SCALELITE_TAG=v1
+#
+### Required when when specific repo or version (other than defaults) are needed
+SCALELITE_DOCKER_IMAGE=blindsidenetwks/scalelite:v1.0
+#
+### Required when recordings are enabled and using BigBlueButton Playback Proxy to serve the recordings.
+SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-amazonlinux
 #
 ### Optional for postgres when using docker-compose
 # POSTGRES_USER=
@@ -25,3 +31,21 @@
 ### Optional for init-letsencrypt.sh when using certbot for generating signed SSL certificates
 #LETSENCRYPT_EMAIL=
 #LETSENCRYPT_STAGING=0 # Set to 1 if you're testing your setup to avoid hitting request limits
+#
+### Optional since v1.0.12
+# DB_DISABLED=false
+# POLL_INTERVAL=60
+# RECORDING_DISABLED=false
+# RECORDING_IMPORT_POLL=true
+# RECORDING_IMPORT_POLL_INTERVAL=60
+# RECORDING_IMPORT_UNPUBLISHED=false
+#
+### Optional when using docker-compose-dev.yml
+# DOCKER_VOL_SCALELITE_API=~/scalelite-run/data/scalelite
+# DOCKER_VOL_POSTGRES_DATA=~/scalelite-run/data/postgres
+# DOCKER_VOL_REDIS_DATA=~/scalelite-run/data/redis
+#
+### Optional for development when using different profiles
+DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy
+#DOCKER_PROXY_NGINX_TEMPLATE=scalelite-local
+#DOCKER_PROXY_NGINX_TEMPLATE=scalelite-cluster
