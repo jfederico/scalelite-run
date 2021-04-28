@@ -85,16 +85,6 @@ services:
     depends_on:
       - scalelite-api
 
-  scalelite-recordings:
-    image: ${SCALELITE_RECORDINGS_DOCKER_IMAGE:-bigbluebutton/bbb-playback-proxy:bionic-230-amazonlinux}
-    container_name: scalelite-recordings
-    restart: unless-stopped
-    volumes:
-      - ./log/recordings/:/var/log/nginx
-      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
-    depends_on:
-      - scalelite-api
-
   scalelite-api:
     image: ${SCALELITE_DOCKER_IMAGE:-blindsidenetwks/scalelite:v1.0}
     container_name: scalelite-api
@@ -108,6 +98,7 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - RECORDING_DISABLED=${RECORDING_DISABLED-false}
+      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME-false}
     depends_on:
       - postgres
       - redis
@@ -121,6 +112,7 @@ services:
     environment:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
+      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME-false}
     command: /bin/sh -c "bin/start-poller"
     depends_on:
       - scalelite-api
