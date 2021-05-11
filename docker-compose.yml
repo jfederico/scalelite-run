@@ -61,6 +61,7 @@ services:
     environment:
       - SECRET_KEY_BASE=${SECRET_KEY_BASE}
       - LOADBALANCER_SECRET=${LOADBALANCER_SECRET}
+      - LOADBALANCER_SECRETS=${LOADBALANCER_SECRETS}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - URL_HOST=${URL_HOST}
