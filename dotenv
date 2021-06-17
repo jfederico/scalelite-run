@@ -1,6 +1,7 @@
 ### Required by scalelite-api
 # SECRET_KEY_BASE=
 # LOADBALANCER_SECRET=
+# LOADBALANCER_SECRETS=
 #
 ### Required by scalelite-api and scalelite-poller
 # REDIS_URL=
