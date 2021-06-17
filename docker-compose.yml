@@ -65,6 +65,7 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - URL_HOST=${URL_HOST}
+      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-true}
     depends_on:
       - postgres
       - redis
