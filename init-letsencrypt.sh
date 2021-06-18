@@ -13,7 +13,7 @@ fi
 URL_HOST=$(grep URL_HOST .env | cut -d '=' -f2)
 echo $URL_HOST
 
-domains=($URL_HOST)
+domains=($URL_HOST,redis.$URL_HOST)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="$LETSENCRYPT_EMAIL" # Adding a valid address is strongly recommended
