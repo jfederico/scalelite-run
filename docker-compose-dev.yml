@@ -13,12 +13,6 @@ volumes:
       type: 'none'
       o: 'bind'
       device: '${DOCKER_VOL_REDIS_DATA}'
-  scalelite-api-dev:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: '${DOCKER_VOL_SCALELITE_API}'
 
 services:
   postgres:
@@ -57,6 +51,8 @@ services:
 
   scalelite-proxy:
     image: nginx:1.18
+# Custom nginx with amazonlinux
+#    image: blindsidenetwks/nginx:amazonlinux
     container_name: scalelite-proxy
     restart: unless-stopped
     ports:
