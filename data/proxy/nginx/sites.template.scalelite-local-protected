@@ -54,10 +54,33 @@ server {
         internal;
     }
 
-    location /* {
+    #location /* {
+    #    proxy_pass  http://docker-scalelite-api;
+    #    include /etc/nginx/sites-common;
+    #}
+
+    location /playback {
         proxy_pass  http://docker-scalelite-api;
         include /etc/nginx/sites-common;
     }
+
+    #location /presentation {
+    #    proxy_pass  http://docker-scalelite-api;
+    #    include /etc/nginx/sites-common;
+    #}
+
+    #location /playback/ {
+    #    rewrite ^/[^\/]+(/.*)$ /playback/player$1 break;
+    #    proxy_pass  http://docker-scalelite-api;
+    #    include /etc/nginx/sites-common;
+    #}
+
+    location /presentation/ {
+        rewrite ^/[^\/]+(/.*)$ /resource/presentation$1 break;
+        proxy_pass  http://docker-scalelite-api;
+        include /etc/nginx/sites-common;
+    }
+
 
     location / {
         proxy_pass http://docker-scalelite-api;
