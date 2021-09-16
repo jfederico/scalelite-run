@@ -42,7 +42,7 @@ server {
         include /etc/nginx/sites-common;
     }
 
-    location /static-resource/ {
+    location /static-resource {
         rewrite /static-resource(/|$)(.*) /$2 break;
         proxy_pass http://docker-scalelite-recordings;
         include /etc/nginx/sites-common;
