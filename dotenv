@@ -41,11 +41,12 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-am
 # RECORDING_IMPORT_UNPUBLISHED=false
 #
 ### Optional when using docker-compose-dev.yml
-# DOCKER_VOL_SCALELITE_API=~/scalelite-run/data/scalelite
 # DOCKER_VOL_POSTGRES_DATA=~/scalelite-run/data/postgres
 # DOCKER_VOL_REDIS_DATA=~/scalelite-run/data/redis
 #
 ### Optional for development when using different profiles
-DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy
+#DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy
+DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy-protected
 #DOCKER_PROXY_NGINX_TEMPLATE=scalelite-local
+#DOCKER_PROXY_NGINX_TEMPLATE=scalelite-local-protected
 #DOCKER_PROXY_NGINX_TEMPLATE=scalelite-cluster
