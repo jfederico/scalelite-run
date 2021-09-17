@@ -3,6 +3,9 @@
 source ./.env
 SCALELITE_RECORDING_DIR=${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}
 
+echo 'Add dependencies...'
+apt-get install -y rsync
+
 echo 'Add the bigbluebutton user...'
 id -u bigbluebutton &>/dev/null || useradd -m -d /home/bigbluebutton -s /bin/bash bigbluebutton
 if [ ! -d "/home/bigbluebutton/.ssh" ]; then
