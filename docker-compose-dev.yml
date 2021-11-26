@@ -93,6 +93,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - RECORDING_DISABLED=${RECORDING_DISABLED-false}
       - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME-false}
+      - PROTECTED_RECORDINGS_ENABLED=${PROTECTED_RECORDINGS_ENABLED-false}
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT}
     volumes:
       - ./log/scalelite-api/:/srv/scalelite/log/
@@ -130,6 +131,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - RECORDING_DISABLED=false
+      - PROTECTED_RECORDINGS_ENABLED=${PROTECTED_RECORDINGS_ENABLED-false}
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT}
     volumes:
       - ./log/scalelite-recording-importer/:/app/log
