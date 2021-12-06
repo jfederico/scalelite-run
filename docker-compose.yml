@@ -66,6 +66,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - URL_HOST=${URL_HOST}
       - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-true}
+      - GET_MEETINGS_API_DISABLED=${GET_MEETINGS_API_DISABLED:-true}
     depends_on:
       - postgres
       - redis
