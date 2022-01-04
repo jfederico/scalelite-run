@@ -32,7 +32,7 @@ chown -R 1000:2000 $SCALELITE_RECORDING_DIR
 chmod -R 0775 $SCALELITE_RECORDING_DIR
 
 echo 'Create symbolic link to the directory structure for uploading ...'
-if [ -d "/var/bigbluebutton" ]; then
+if [[ ! -L "/var/bigbluebutton" && -d "/var/bigbluebutton" ]]; then
   mv /var/bigbluebutton /var/.bigbluebutton
 elif [ -e "/var/bigbluebutton" ]; then
   rm /var/bigbluebutton
