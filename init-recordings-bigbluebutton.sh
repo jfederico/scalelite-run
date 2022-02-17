@@ -145,7 +145,7 @@ fi
 wget https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite.yml -P $CORE_SCRIPTS_DIR
 sed -e '/spool_dir/ s/^#*/#/' -i $CORE_SCRIPTS_DIR/scalelite.yml
 sed -e '/extra_rsync_opts/ s/^#*/#/' -i $CORE_SCRIPTS_DIR/scalelite.yml
-echo 'spool_dir: scalelite-spool:/var/bigbluebutton/spool' | tee -a $CORE_SCRIPTS_DIR/scalelite.yml
+echo 'spool_dir: bigbluebutton@scalelite-spool:/var/bigbluebutton/spool' | tee -a $CORE_SCRIPTS_DIR/scalelite.yml
 echo 'extra_rsync_opts: ["-av", "--no-owner", "--chmod=F664"]' | tee -a $CORE_SCRIPTS_DIR/scalelite.yml
 
 public_key=$(cat /home/bigbluebutton/.ssh/id_rsa.pub)
