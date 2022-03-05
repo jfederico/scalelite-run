@@ -10,7 +10,7 @@ OPTIONS
   -h <scalelite-hostname>          Configure server with <scalelite-hostname> (required)
   -u <scalelite-username>          Scalelite username <scalelite-username> (optional)
   -p <scalelite-ssh-port>          SSH port in Scalelite server <scalelite-ssh-port> (optional)
-  -r <scalelite-ssh-port>          File wiht id_rsa private key to be used to ssh into Scalelite server <scalelite-id_rsa> (optional)
+  -r <scalelite-id_rsa>            File wiht id_rsa private key to be used to ssh into Scalelite server <scalelite-id_rsa> (optional)
 EXAMPLES:
 Sample options for setup a BigBlueButton server
     -s scalelite.example.com
@@ -134,7 +134,7 @@ if [ -f "$POST_PUBLISH_DIR/scalelite_post_publish.rb" ]; then
    echo "file $POST_PUBLISH_DIR/scalelite_post_publish.rb exists"
    rm $POST_PUBLISH_DIR/scalelite_post_publish.rb
 fi
-wget -O post_publish_scalelite.rb -P $POST_PUBLISH_DIR https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite_post_publish.rb
+wget -O $POST_PUBLISH_DIR/post_publish_scalelite.rb https://raw.githubusercontent.com/blindsidenetworks/scalelite/master/bigbluebutton/scalelite_post_publish.rb
 
 echo 'Add recording transfer settings...'
 CORE_SCRIPTS_DIR=/usr/local/bigbluebutton/core/scripts
