@@ -113,8 +113,8 @@ else
   chown bigbluebutton.bigbluebutton /home/bigbluebutton/
 fi
 
-echo 'Generate ssh key pair...'
-su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa" || true
+echo 'Generate ssh key pair if does not exist...'
+su - bigbluebutton -s /bin/bash -c "ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_rsa <<<n >/dev/null 2>&1" || true
 
 echo 'Generate ssh config...'
 if [ -f "/home/bigbluebutton/.ssh/config" ]; then
