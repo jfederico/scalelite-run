@@ -13,7 +13,7 @@ fi
 URL_HOST=$(grep URL_HOST .env | cut -d '=' -f2)
 echo $URL_HOST
 
-domains=($URL_HOST,redis.$URL_HOST)
+domains=($URL_HOST)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="$LETSENCRYPT_EMAIL" # Adding a valid address is strongly recommended
@@ -39,15 +39,15 @@ echo "### Creating dummy certificate for $domains ..."
 path="/etc/letsencrypt/live/$domains"
 mkdir -p "$data_path/conf/live/$domains"
 docker-compose run --rm --entrypoint "\
-  openssl req -x509 -nodes -newkey rsa:1024 -days 1\
+  openssl req -x509 -nodes -newkey rsa:2048 -days 1\
     -keyout '$path/privkey.pem' \
     -out '$path/fullchain.pem' \
     -subj '/CN=localhost'" certbot
 echo
 
 
-echo "### Starting scalelite-nginx ..."
-docker-compose up --force-recreate -d scalelite-nginx
+echo "### Starting scalelite-proxy ..."
+docker-compose up --force-recreate -d scalelite-proxy
 echo
 
 echo "### Deleting dummy certificate for $domains ..."
@@ -85,5 +85,5 @@ docker-compose run --rm --entrypoint "\
     --force-renewal" certbot
 echo
 
-echo "### Reloading scalelite-nginx ..."
-docker-compose exec scalelite-nginx nginx -s reload
+echo "### Reloading scalelite-proxy ..."
+docker-compose exec scalelite-proxy nginx -s reload
