@@ -14,9 +14,9 @@ OPTIONS
 EXAMPLES:
 Sample options for setup a BigBlueButton server
     -s scalelite.example.com
-    -s scalelite.example.com -u scalelite
-    -s scalelite.example.com -u scalelite -p 2222
-    -s scalelite.example.com -u scalelite -p 2222 -r id_rsa-example
+    -s scalelite.example.com -u bigbluebutton
+    -s scalelite.example.com -u bigbluebutton -p 2222
+    -s scalelite.example.com -u bigbluebutton -p 2222 -r id_rsa-example
 HERE
 exit 0
 }
