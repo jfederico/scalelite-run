@@ -32,11 +32,6 @@ Create a new .env file based on the dotenv file included.
 
 ```
 cp dotenv .env
-
-sed -e '/SECRET_KEY_BASE=/ s/^${openssl rand -hex 64}*/#/' -i .env
-
-sed -i 's/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=[${openssl rand -hex 64}]/' .env
-
 ```
 
 Most required variables are pre-set by default, the ones that must be set before starting are:

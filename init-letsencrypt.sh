@@ -122,5 +122,5 @@ docker-compose run --rm --entrypoint "\
     --force-renewal" certbot
 echo
 
-echo "### Reloading $NGINX_CONTAINER_NAME..."
-docker-compose exec $([ "$interactive" -ne 1 ] && echo "-T") $NGINX_CONTAINER_NAME nginx -s reload
+echo "### Reloading scalelite-proxy..."
+docker-compose exec $([ "$interactive" -ne 1 ] && echo "-T") scalelite-proxy nginx -s reload
