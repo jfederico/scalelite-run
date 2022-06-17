@@ -8,7 +8,7 @@ It was released by [Blindside Networks](https://blindsidenetworks.com/) under th
 
 The full source code is available on GitHub and pre-built docker images can be found on [DockerHub](https://hub.docker.com/r/blindsidenetwks/scalelite).
 
-Scaleite itself is a ruby on rails application. 
+Scaleite itself is a ruby on rails application.
 
 For its deployment it is required some experience with bigbluebutton and scalelite itself, and all the tools and components used as part of the stack such as redis, postgres, nginx, docker and docker-compose, as well as ubuntu and AWS infrastructure.
 
@@ -32,6 +32,11 @@ Create a new .env file based on the dotenv file included.
 
 ```
 cp dotenv .env
+
+sed -e '/SECRET_KEY_BASE=/ s/^${openssl rand -hex 64}*/#/' -i .env
+
+sed -i 's/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=[${openssl rand -hex 64}]/' .env
+
 ```
 
 Most required variables are pre-set by default, the ones that must be set before starting are:
@@ -43,3 +48,8 @@ URL_HOST=
 NGINX_SSL=
 ```
 
+Also, when using the `init-letsencrypt.sh` script, you should add the email.
+
+```
+LETSENCRYPT_EMAIL=
+```

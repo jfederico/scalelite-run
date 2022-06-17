@@ -10,6 +10,17 @@ if [[ ! -f ./.env ]]; then
   exit 1
 fi
 
+# Local .env
+if [ -f .env ]; then
+    # Load Environment Variables
+    export $(cat .env | grep -v '#' | sed 's/\r$//' | awk '/=/ {print $1}' )
+fi
+
+if [[ -z "$LETSENCRYPT_EMAIL" ]]; then
+  echo "Settung up an email for letsencrypt certificates is strongly recommended."
+  exit 1
+fi
+
 usage() {
   echo -e "Initializes letsencrypt certificates for Nginx proxy container\n"
   echo -e "Usage: $0 [-z|-r|-h]\n"
@@ -33,18 +44,13 @@ do
     esac
 done
 
-URL_HOST=$(grep URL_HOST .env | cut -d '=' -f2)
 echo $URL_HOST
-NGINX_CONTAINER_NAME=$(grep DOCKER_PROXY_NGINX_TEMPLATE .env | cut -d '=' -f2)
-if [[ -z "$NGINX_CONTAINER_NAME" ]]; then
-  NGINX_CONTAINER_NAME=scalelite-proxy
-fi
 
 domains=($URL_HOST)
 rsa_key_size=4096
 data_path="./data/certbot"
-email="$LETSENCRYPT_EMAIL" # Adding a valid address is strongly recommended
-staging=${LETSENCRYPT_STAGING:-0} # Set to 1 if you're testing your setup to avoid hitting request limits
+email="$LETSENCRYPT_EMAIL" # Adding a valid address is strongly recommended.
+staging=${LETSENCRYPT_STAGING:-0}
 
 if [ -d "$data_path" ] && [ "$replaceExisting" -eq 0 ]; then
     if [ "$interactive" -eq 0 ]; then
@@ -76,9 +82,8 @@ docker-compose run --rm --entrypoint "\
     -subj '/CN=localhost'" certbot
 echo
 
-
-echo "### Starting $NGINX_CONTAINER_NAME ..."
-docker-compose up --force-recreate -d $NGINX_CONTAINER_NAME
+echo "### Starting scalelite-proxy ..."
+docker-compose up --force-recreate -d scalelite-proxy
 echo
 
 echo "### Deleting dummy certificate for $domains ..."

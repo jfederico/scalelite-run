@@ -61,7 +61,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./log/recordings/:/var/log/nginx
-      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
+      - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
     depends_on:
       - scalelite-api
 
@@ -74,12 +74,12 @@ services:
     environment:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
-      - RECORDING_DISABLED=${RECORDING_DISABLED-false}
-      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME-false}
-      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT}
+      - RECORDING_DISABLED=${RECORDING_DISABLED:-false}
+      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-false}
+      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
     volumes:
       - ./log/scalelite-api/:/srv/scalelite/log/
-      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
+      - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
     depends_on:
       - postgres
       - redis
@@ -94,8 +94,8 @@ services:
       - .env
     environment:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME-false}
-      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT}
+      - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-false}
+      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
     volumes:
       - ./log/scalelite-poller/:/app/log
     command: /bin/sh -c "bin/start-poller"
@@ -113,11 +113,11 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - RECORDING_DISABLED=false
-      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT}
+      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
     volumes:
       - ./log/scalelite-recording-importer/:/app/log
-      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
-      - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/spool:/var/bigbluebutton/spool
+      - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
+      - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}/spool:/var/bigbluebutton/spool
     command: /bin/sh -c "bin/start-recording-importer"
     depends_on:
       - scalelite-api
