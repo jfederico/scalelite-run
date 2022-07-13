@@ -48,3 +48,41 @@ Also, when using the `init-letsencrypt.sh` script, you should add the email.
 ```
 LETSENCRYPT_EMAIL=
 ```
+
+Obtain the value for SECRET_KEY_BASE and LOADBALANCER_SECRET with:
+
+```
+sed -i "s/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=$(openssl rand -hex 64)/" .env
+sed -i "s/LOADBALANCER_SECRET=.*/LOADBALANCER_SECRET=$(openssl rand -hex 24)/" .env
+```
+
+Set the hostname on URL_HOST (E.g. scalelite.example.com)
+
+When using a SSL certificate set NGINX_SSL to true
+
+Your final .env file should look like this:
+
+```
+SECRET_KEY_BASE=a7441a3548b9890a8f12b385854743f3101fd7fac9353f689fc4fa4f2df6cdcd1f58bdf6a02ca0d35a611b9063151d70986bad8123a73244abb2a11763847a45
+LOADBALANCER_SECRET=c2d3a8e27844d56060436f3129acd945d7531fe77e661716
+URL_HOST=scalelite.example.com
+NGINX_SSL=true
+```
+
+For using a SSL certificate signed by Let’s Encrypt, generate the certificates.
+
+```
+./init-letsencrypt.sh
+```
+
+Start the services.
+
+```
+docker-compose up -d
+```
+
+Now, the scalelite server is running, but it is not quite yet ready. The database must be initialized.
+
+```
+docker exec -i scalelite-api bundle exec rake db:setup
+```

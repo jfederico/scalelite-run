@@ -35,10 +35,9 @@ services:
       - "6379:6379"
     volumes:
       - redis-data-dev:/data
-      - ./data/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis/conf/redis.conf.template:/usr/local/etc/redis/redis.conf.template
       - ./data/certbot/conf/:/etc/letsencrypt
-#    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-    command: ["redis-server", "--appendonly", "yes"]
+    command: /bin/sh -c "sed -e 's/$$HOSTNAME/redis.${DOMAIN_NAME:-xlab.blindside-dev.com}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
 
   certbot:
     image: certbot/certbot

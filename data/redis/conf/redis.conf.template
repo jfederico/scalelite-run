@@ -59,9 +59,9 @@ dynamic-hz yes
 rdb-save-incremental-fsync yes
 ### TLS
 tls-port 7379
-tls-cert-file /etc/letsencrypt/archive/sl.jesus.123it.ca/cert3.pem
-tls-key-file /etc/letsencrypt/archive/sl.jesus.123it.ca/privkey3.pem
-tls-ca-cert-file /etc/letsencrypt/archive/sl.jesus.123it.ca/chain3.pem
+tls-cert-file /etc/letsencrypt/live/$HOSTNAME/cert.pem
+tls-key-file /etc/letsencrypt/live/$HOSTNAME/privkey.pem
+tls-ca-cert-file /etc/letsencrypt/live/$HOSTNAME/chain.pem
 tls-auth-clients no
 
 # tls-auth-clients optional
