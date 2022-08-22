@@ -86,3 +86,8 @@ Now, the scalelite server is running, but it is not quite yet ready. The databas
 ```
 docker exec -i scalelite-api bundle exec rake db:setup
 ```
+
+
+### Infrastructure model
+
+![Infrastructure model](.infragenie/infrastructure_model.png)
