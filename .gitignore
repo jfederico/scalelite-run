@@ -8,9 +8,10 @@
 /data/*
 !/data/nginx/
 !/data/proxy/
-/data/redis/db/*
+/data/redis/db*
 !/data/redis/
-/data/postgres/*
+/data/postgres/db*
+!/data/postgres/
 
 /tmp*
 
