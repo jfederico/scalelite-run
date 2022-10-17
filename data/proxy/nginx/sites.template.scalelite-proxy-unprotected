@@ -1,7 +1,7 @@
 #### For <$NGINX_HOSTNAME>
 
 upstream docker-scalelite-api {
-    server $NGINX_HOSTNAME:3000;
+    server scalelite-api:3000;
 }
 
 upstream docker-scalelite-recordings {
@@ -38,24 +38,27 @@ server {
     #ssl_certificate_key /etc/ssl/privkey.pem;
 
     location /health_check {
-        proxy_pass http://docker-scalelite-api;
+        proxy_pass  http://docker-scalelite-api;
         include /etc/nginx/sites-common;
     }
 
-    location /static-resource/ {
-        rewrite /static-resource(/|$)(.*) /$2 break;
-        proxy_pass http://docker-scalelite-recordings;
+    location /bigbluebutton/api/ {
+        proxy_pass  http://docker-scalelite-api;
         include /etc/nginx/sites-common;
-        internal;
     }
 
-    location /playback {
-        proxy_pass http://docker-scalelite-recordings;
+    location /presentation/ {
+        proxy_pass  http://docker-scalelite-recordings;
+        include /etc/nginx/sites-common;
+    }
+
+    location /playback/ {
+        proxy_pass  http://docker-scalelite-recordings;
         include /etc/nginx/sites-common;
     }
 
     location / {
-        proxy_pass http://docker-scalelite-api;
+        proxy_pass http://docker-scalelite-api/health_check;
         include /etc/nginx/sites-common;
     }
 }

@@ -26,13 +26,8 @@ server {
 server {
     server_name $NGINX_HOSTNAME;
 
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache       shared:SSL:10m;
+    listen 443 ssl;
+    listen [::]:443 ssl;
 
     ## Configuration for Letsencrypt SSL Certificate
     ssl_certificate /etc/letsencrypt/live/$NGINX_HOSTNAME/fullchain.pem;
@@ -43,27 +38,24 @@ server {
     #ssl_certificate_key /etc/ssl/privkey.pem;
 
     location /health_check {
-        proxy_pass  http://docker-scalelite-api;
+        proxy_pass http://docker-scalelite-api;
         include /etc/nginx/sites-common;
     }
 
-    location /bigbluebutton/api/ {
-        proxy_pass  http://docker-scalelite-api;
+    location /static-resource/ {
+        rewrite /static-resource(/|$)(.*) /$2 break;
+        proxy_pass http://docker-scalelite-recordings;
         include /etc/nginx/sites-common;
+        internal;
     }
 
-    location /presentation/ {
-        proxy_pass  http://docker-scalelite-recordings;
-        include /etc/nginx/sites-common;
-    }
-
-    location /playback/ {
-        proxy_pass  http://docker-scalelite-recordings;
+    location /playback {
+        proxy_pass http://docker-scalelite-recordings;
         include /etc/nginx/sites-common;
     }
 
     location / {
-        proxy_pass http://docker-scalelite-api/health_check;
+        proxy_pass http://docker-scalelite-api;
         include /etc/nginx/sites-common;
     }
 }

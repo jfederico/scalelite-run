@@ -2,13 +2,11 @@ version: '3'
 
 volumes:
   postgres-data-dev:
-    driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
       device: '${DOCKER_VOL_POSTGRES_DATA}'
   redis-data-dev:
-    driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
@@ -36,34 +34,11 @@ services:
     volumes:
       - redis-data-dev:/data
       - ./data/redis/conf/redis.conf.template:/usr/local/etc/redis/redis.conf.template
-      - ./data/certbot/conf/:/etc/letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt
     command: /bin/sh -c "sed -e 's/$$HOSTNAME/redis.${DOMAIN_NAME:-xlab.blindside-dev.com}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./log/certbot/:/var/log/letsencrypt
-      - ./data/certbot/conf/:/etc/letsencrypt
-      - ./data/certbot/www/:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
-  # scalelite-haproxy:
-  #   image: haproxy:alpine
-  #   container_name: scalelite-haproxy
-  #   restart: always
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./data/proxy/haproxy/:/usr/local/etc/haproxy
-  #   networks:
-  #     - default
 
   scalelite-nginx:
     image: nginx:1.18
-# Custom nginx with amazonlinux
-#    image: blindsidenetwks/nginx:amazonlinux
     container_name: scalelite-nginx
     restart: unless-stopped
     ports:
@@ -75,8 +50,7 @@ services:
       - ./log/proxy-nginx/:/var/log/nginx
       - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites.template
       - ./data/proxy/nginx/sites-common:/etc/nginx/sites-common
-      - ./data/certbot/conf/:/etc/letsencrypt
-      - ./data/certbot/www/:/var/www/certbot
+      - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
       - certbot
       - scalelite-api
@@ -156,9 +130,3 @@ services:
       - scalelite-api
     logging:
       driver: journald
-
-  ubuntu:
-    image: ubuntu:22.04
-    container_name: ubuntu
-    restart: unless-stopped
-    command: ["sleep","infinity"]
