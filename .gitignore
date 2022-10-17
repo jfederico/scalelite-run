@@ -10,6 +10,7 @@
 !/data/proxy/
 /data/redis/db/*
 !/data/redis/
+/data/postgres/*
 
 /tmp*
 

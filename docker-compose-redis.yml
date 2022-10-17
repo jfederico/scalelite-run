@@ -1,0 +1,15 @@
+version: '3'
+
+volumes:
+  redis-data:
+
+services:
+  redis:
+    image: redis:6.2
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+      - ./data/redis/conf/redis.conf.template:/usr/local/etc/redis/redis.conf.template
+      - ./data/certbot/conf/:/etc/letsencrypt
+    command: /bin/sh -c "sed -e 's/$$HOSTNAME/redis.${DOMAIN_NAME:-xlab.blindside-dev.com}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
