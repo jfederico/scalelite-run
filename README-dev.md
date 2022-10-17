@@ -1,8 +1,8 @@
-## Installation (short version)
+# Installation (short version)
 
 On an Ubuntu 22.04 as the host machine.
 
-### Prerequisites
+## Prerequisites
 
 This machine needs to be updated and have installed:
 
@@ -11,14 +11,14 @@ This machine needs to be updated and have installed:
 - [Docker Compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-22-04)
 - Certbot
 
-### Fetching the scripts
+## Fetching the scripts
 
 ```
 git clone https://github.com/jfederico/scalelite-run
 cd scalelite-run
 ```
 
-### Initializing environment variables
+## Initializing environment variables
 
 Create a new `.env` file based on the `dotenv` file included.
 
@@ -47,7 +47,7 @@ Set the hostname on URL_HOST (E.g. sl.example.com)
 sed -i "s/URL_HOST=.*/URL_HOST=sl.example.com" .env
 ```
 
-### Generate LetsEncrypt SSL certificates manually
+## Generate LetsEncrypt SSL certificates manually
 
 ```
 source ./.env
@@ -55,7 +55,7 @@ certbot certonly --manual -d sl.$DOMAIN_NAME --agree-tos --no-bootstrap --manual
 certbot certonly --manual -d redis.$DOMAIN_NAME --agree-tos --no-bootstrap --manual-public-ip-logging-ok --preferred-challenges=dns --email <YOUR_ENMAIL> --server https://acme-v02.api.letsencrypt.org/director
 ```
 
-### Starting the app
+## Starting the app
 
 Start the services.
 
@@ -76,9 +76,9 @@ docker exec -i scalelite-api bundle exec rake servers:add[https://bbb25.example.
 docker exec -i scalelite-api bundle exec rake servers:enable[bbb25.example.com]
 ```
 
-### Setup recordings
+## Setup recordings
 
-#### Configuring the BBB server
+### Configuring the BBB server
 
 Init the bbb server as explained in the documentation
 
@@ -110,7 +110,7 @@ spool_dir: scalelite-spool:/home/<YOUR_USERNAME>/spool		## adapted
 
 Accept the key, this is done only once.
 
-#### Final touches in your Local Machine
+### Final touches in your Local Machine
 
 1. Make sure your user has rights to write in the `/mnt/scalelite-recordings/var/bigbluebutton/spool/`
 
