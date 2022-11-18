@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## Scrip based on https://github.com/wmnnd/nginx-certbot
+## https://pentacent.medium.com/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71
+
 if ! [ -x "$(command -v docker-compose)" ]; then
   echo 'Error: docker-compose is not installed.' >&2
   exit 1
