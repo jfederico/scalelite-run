@@ -1,7 +1,7 @@
-#### For <$NGINX_HOSTNAME>
+#### For <sl.$NGINX_HOSTNAME>
 
 upstream docker-scalelite-api {
-    server $NGINX_HOSTNAME:3000;
+    server sl.$NGINX_HOSTNAME:3000;
 }
 
 upstream docker-scalelite-recordings {
@@ -9,7 +9,7 @@ upstream docker-scalelite-recordings {
 }
 
 server {
-    server_name $NGINX_HOSTNAME;
+    server_name sl.$NGINX_HOSTNAME;
 
     listen  80;
     listen [::]:80;
@@ -24,14 +24,14 @@ server {
 }
 
 server {
-    server_name $NGINX_HOSTNAME;
+    server_name sl.$NGINX_HOSTNAME;
 
     listen 443 ssl;
     listen [::]:443 ssl;
 
     ## Configuration for Letsencrypt SSL Certificate
-    ssl_certificate /etc/letsencrypt/live/$NGINX_HOSTNAME/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$NGINX_HOSTNAME/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/sl.$NGINX_HOSTNAME/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/sl.$NGINX_HOSTNAME/privkey.pem;
 
     ## Configuration for SSL Certificate from a CA other than LetsEncrypt
     #ssl_certificate /etc/ssl/fullchain.pem;
@@ -54,8 +54,61 @@ server {
         include /etc/nginx/sites-common;
     }
 
+    location /recording {
+        proxy_pass http://docker-scalelite-recordings;
+        include /etc/nginx/sites-common;
+    }
+
     location / {
         proxy_pass http://docker-scalelite-api;
         include /etc/nginx/sites-common;
+    }
+}
+
+#### For <kc.$NGINX_HOSTNAME>
+
+upstream keycloak-server {
+    server keycloak:8080;
+}
+
+server {
+    server_name kc.$NGINX_HOSTNAME;
+
+    listen 80;
+    listen [::]:80;
+    listen 443 ssl;
+    listen [::]:443;
+
+    ## Configuration for Letsencrypt SSL Certificate
+    ssl_certificate /etc/letsencrypt/live/kc.$NGINX_HOSTNAME/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/kc.$NGINX_HOSTNAME/privkey.pem;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass  http://keycloak-server;
+
+        proxy_read_timeout 60s;
+        proxy_redirect off;
+
+        proxy_set_header  Host $http_host;
+
+        proxy_set_header  X-Real-IP $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_set_header  X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_headers_hash_max_size 512;
+        proxy_headers_hash_bucket_size 128;
+
+        proxy_buffer_size          128k;
+        proxy_buffers              4 256k;
+        proxy_busy_buffers_size    256k;
     }
 }

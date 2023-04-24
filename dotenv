@@ -22,7 +22,7 @@ URL_HOST=
 SCALELITE_DOCKER_IMAGE=blindsidenetwks/scalelite:v1.0
 #
 ### Required when recordings are enabled and using BigBlueButton Playback Proxy to serve the recordings.
-SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-amazonlinux
+SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:focal-260-amazonlinux
 #
 ### Optional for postgres when using docker-compose
 # POSTGRES_USER=

@@ -57,6 +57,11 @@ server {
         include /etc/nginx/sites-common;
     }
 
+    location /recording/ {
+        proxy_pass  http://docker-scalelite-recordings;
+        include /etc/nginx/sites-common;
+    }
+
     location / {
         proxy_pass http://docker-scalelite-api/health_check;
         include /etc/nginx/sites-common;
