@@ -38,14 +38,14 @@ services:
     command: /bin/sh -c "sed -e 's/$$HOSTNAME/redis.${DOMAIN_NAME:-xlab.blindside-dev.com}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
 
   scalelite-nginx:
-    image: nginx:1.18
+    image: nginx:1.24
     container_name: scalelite-nginx
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_HOSTNAME=${URL_HOST:-xlab.blindside-dev.com}
+      - NGINX_HOSTNAME=${DOMAIN_NAME:-xlab.blindside-dev.com}
     volumes:
       - ./log/proxy-nginx/:/var/log/nginx
       - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites.template
@@ -58,9 +58,11 @@ services:
     command: /bin/bash -c "envsubst '$$NGINX_HOSTNAME' < /etc/nginx/sites.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
 
   scalelite-recordings:
-    image: ${SCALELITE_RECORDINGS_DOCKER_IMAGE:-bigbluebutton/bbb-playback-proxy:bionic-240-alpine}
+    image: ${SCALELITE_RECORDINGS_DOCKER_IMAGE:-bigbluebutton/bbb-playback-proxy:focal-260-alpine}
     container_name: scalelite-recordings
     restart: unless-stopped
+    ports:
+      - "8001:80"
     volumes:
       - ./log/recordings/:/var/log/nginx
       - ${SCALELITE_RECORDING_DIR-/mnt/scalelite-recordings/var/bigbluebutton}/published:/var/bigbluebutton/published
@@ -130,3 +132,34 @@ services:
       - scalelite-api
     logging:
       driver: journald
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:19.0.3-legacy
+    # image: quay.io/keycloak/keycloak:19.0.3
+    # command: "start-dev --auto-build"
+    container_name: keycloak
+    restart: unless-stopped
+    environment:
+      # KEYCLOAK_ADMIN: admin
+      # KEYCLOAK_ADMIN_PASSWORD: adminadmin
+      # KC_DB_URL: postgres
+      # KC_DB: keycloakdb
+      # KC_DB_USERNAME: postgres
+      # KC_DB_PASSWORD: password
+      # KC_HOSTNAME_STRICT: "false"
+      # KC_PROXY: edge
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: adminadmin
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloakdb
+      DB_USER: postgres
+      DB_PASSWORD: password
+      PROXY_ADDRESS_FORWARDING: "true"
+    volumes:
+      - ./data/certbot/conf/:/etc/letsencrypt
+      - ./data/certbot/conf/live/kc.${DOMAIN_NAME:-xlab.blindside-dev.com}/cert.pem:/etc/x509/https/tls.crt
+      - ./data/certbot/conf/live/kc.${DOMAIN_NAME:-xlab.blindside-dev.com}/privkey.pem:/etc/x509/https/tls.key
+      - ./data/keycloak/themes/demo:/opt/jboss/keycloak/themes/demo
+    depends_on:
+      - postgres
