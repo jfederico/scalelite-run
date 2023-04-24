@@ -1,0 +1,10 @@
+{
+  "name": "angular-loader",
+  "version": "1.8.3",
+  "license": "MIT",
+  "main": "./angular-loader.js",
+  "ignore": [],
+  "dependencies": {
+    "angular": "1.8.3"
+  }
+}
