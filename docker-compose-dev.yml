@@ -40,7 +40,7 @@ services:
     command: /bin/sh -c "sed -e 's/$$HOSTNAME/redis.${DOMAIN_NAME:-xlab.blindside-dev.com}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
 
   certbot:
-    image: certbot/certbot
+    image: ${CERTBOT_IMAGE:-certbot/certbot}
     container_name: certbot
     volumes:
       - ./log/certbot/:/var/log/letsencrypt
