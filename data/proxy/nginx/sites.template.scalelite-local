@@ -58,7 +58,7 @@ server {
     }
 
     location / {
-        proxy_pass http://docker-scalelite-api/health_check;
+        proxy_pass http://docker-scalelite-api;
         include /etc/nginx/sites-common;
     }
 }
