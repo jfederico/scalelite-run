@@ -1,10 +1,18 @@
-### Required by scalelite-api
+### Required across containers
 SECRET_KEY_BASE=
+DOMAIN_NAME=
+
+### Required by scalelite-api
 LOADBALANCER_SECRET=
-URL_HOST=
+SL_HOST=
+
+### Optional for scalelite-api
+# LOADBALANCER_CHECKSUM_ALGORITHM=SHA256
+
 #
 ### Required by scalelite-api and scalelite-poller
 # REDIS_URL=
+# REDIS_HOST=
 #
 ### Required by scalelite-api and scalelite-recording-importer
 # DATABASE_URL=
@@ -24,9 +32,17 @@ SCALELITE_DOCKER_IMAGE=blindsidenetwks/scalelite:v1.0
 ### Required when recordings are enabled and using BigBlueButton Playback Proxy to serve the recordings.
 SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:focal-260-amazonlinux
 #
+### Optional for nginx when using docker-compose
+# NGINX_DOCKER_IMAGE=
+# CERTBOT_DOCKER_IMAGE=
+#
 ### Optional for postgres when using docker-compose
 # POSTGRES_USER=
 # POSTGRES_PASSWORD=
+# POSTGRES_DOCKER_IMAGE=
+#
+### Optional for redis when using docker-compose
+# REDIS_DOCKER_IMAGE=
 #
 ### Optional for init-letsencrypt.sh when using certbot for generating signed SSL certificates
 #LETSENCRYPT_EMAIL=
@@ -52,8 +68,12 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:focal-260-ama
 #   scalelite-local
 #   scalelite-local-protected
 #   scalelite-cluster
-
+#
 ### Optional for the deployment, but required when using init-letsencrypt.sh script
 # LETSENCRYPT_EMAIL=
 # LETSENCRYPT_STAGING=0
 #   Set to 1 if you're testing your setup to avoid hitting request limits
+#
+### Optional for Multitenancy
+# MULTITENANCY_ENABLED=
+#
