@@ -6,27 +6,27 @@ volumes:
 
 services:
   postgres:
-    image: postgres:11-alpine
+    image: ${POSTGRES_DOCKER_IMAGE:-postgres:11-alpine}
     container_name: postgres
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-dev:/var/lib/postgresql/data
 
   redis:
-    image: redis:6.2-alpine
+    image: ${REDIS_DOCKER_IMAGE:-redis:6.2-alpine}
     container_name: redis
     restart: unless-stopped
     volumes:
       - redis-data:/data
       - ./data/redis/conf/redis.conf.template:/usr/local/etc/redis/redis.conf.template
       - ./data/certbot/conf/:/etc/letsencrypt
-    command: /bin/sh -c "sed -e 's/$$HOSTNAME/redis.${DOMAIN_NAME:-xlab.blindside-dev.com}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
+    command: /bin/sh -c "sed -e 's/$$HOSTNAME/${REDIS_HOST:-redis}.${DOMAIN_NAME:-user.blindside-ps.dev}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
 
   certbot:
-    image: certbot/certbot:v1.11.0
+    image: ${CERTBOT_DOCKER_IMAGE:-certbot/certbot}
     container_name: certbot
     volumes:
       - ./log/certbot/:/var/log/letsencrypt
@@ -35,14 +35,14 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   scalelite-proxy:
-    image: nginx:1.24
+    image: ${NGINX_DOCKER_IMAGE:-nginx:1.24}
     container_name: scalelite-proxy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_HOSTNAME=${URL_HOST:-sl.xlab.blindside-dev.com}
+      - NGINX_HOSTNAME=${URL_HOST:-sl.xlab.blindside-ps.dev}
     volumes:
       - ./log/proxy-nginx/:/var/log/nginx
       - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites.template
