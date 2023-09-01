@@ -14,6 +14,9 @@
 # SCALELITE_NGINX_EXTRA_OPTS=--mount type=bind,source=/etc/letsencrypt,target=/etc/nginx/ssl,readonly
 # URL_HOST=
 #
+### Required by Redis
+# DOMAIN_NAME=
+#
 ### Required when when specific repo or version (other than defaults) are needed (DEPRECATED)
 # SCALELITE_REPO=blindsidenetwks
 # SCALELITE_TAG=v1
@@ -57,3 +60,8 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-am
 # LETSENCRYPT_EMAIL=
 # LETSENCRYPT_STAGING=0
 #   Set to 1 if you're testing your setup to avoid hitting request limits
+
+### Multitenancy
+# MULTITENANCY_ENABLED=
+# You can use this image to automate the DNS challenge if you are using the AWS suite
+# CERTBOT_IMAGE=certbot/dns-route53
