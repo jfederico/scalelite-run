@@ -42,7 +42,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_HOSTNAME=${URL_HOST:-sl.xlab.blindside-ps.dev}
+      - NGINX_HOSTNAME=${SL_HOST:-sl.xlab.blindside-ps.dev}
     volumes:
       - ./log/proxy-nginx/:/var/log/nginx
       - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites.template
