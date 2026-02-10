@@ -31,7 +31,8 @@ Most required variables are preset by default, the ones that must be set before 
 ```
 SECRET_KEY_BASE=
 LOADBALANCER_SECRET=
-URL_HOST=
+SL_HOST=
+DOMAIN_NAME=
 ```
 
 Obtain the value for SECRET_KEY_BASE and LOADBALANCER_SECRET with:
@@ -41,17 +42,23 @@ sed -i "s/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=$(openssl rand -hex 64)/" .env
 sed -i "s/LOADBALANCER_SECRET=.*/LOADBALANCER_SECRET=$(openssl rand -hex 24)/" .env
 ```
 
-Set the hostname on URL_HOST (E.g. sl.example.com)
+Set the hostname on SL_HOST (E.g. sl)
 
 ```
-sed -i "s/URL_HOST=.*/URL_HOST=sl.example.com" .env
+sed -i "s/SL_HOST=.*/SL_HOST=sl" .env
+```
+
+Set the domain name on DOMAIN_NAME (E.g. example.com)
+
+```
+sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com" .env
 ```
 
 ## Generate LetsEncrypt SSL certificates manually
 
 ```
 source ./.env
-certbot certonly --manual -d sl.$DOMAIN_NAME --agree-tos --no-bootstrap --manual-public-ip-logging-ok --preferred-challenges=dns --email <YOUR_ENMAIL> --server https://acme-v02.api.letsencrypt.org/director
+certbot certonly --manual -d $SL_HOST.$DOMAIN_NAME --agree-tos --no-bootstrap --manual-public-ip-logging-ok --preferred-challenges=dns --email <YOUR_ENMAIL> --server https://acme-v02.api.letsencrypt.org/director
 certbot certonly --manual -d redis.$DOMAIN_NAME --agree-tos --no-bootstrap --manual-public-ip-logging-ok --preferred-challenges=dns --email <YOUR_ENMAIL> --server https://acme-v02.api.letsencrypt.org/director
 ```
 

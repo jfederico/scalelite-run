@@ -47,9 +47,10 @@ do
     esac
 done
 
-echo $URL_HOST
+domains="$SL_HOST.$DOMAIN_NAME"
 
-domains=($URL_HOST)
+echo $domains
+
 rsa_key_size=4096
 data_path="./data/certbot"
 email="$LETSENCRYPT_EMAIL" # Adding a valid address is strongly recommended.
