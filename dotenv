@@ -1,9 +1,18 @@
+### Required across containers
+SECRET_KEY_BASE=
+DOMAIN_NAME=
+
 ### Required by scalelite-api
-# SECRET_KEY_BASE=
-# LOADBALANCER_SECRET=
+LOADBALANCER_SECRET=
+SL_HOST=
+
+### Optional for scalelite-api
+# LOADBALANCER_CHECKSUM_ALGORITHM=SHA256
+
 #
 ### Required by scalelite-api and scalelite-poller
 # REDIS_URL=
+# REDIS_HOST=
 #
 ### Required by scalelite-api and scalelite-recording-importer
 # DATABASE_URL=
@@ -12,7 +21,6 @@
 ### Required by scalelite-nginx (only When using SSL)
 # NGINX_SSL=true
 # SCALELITE_NGINX_EXTRA_OPTS=--mount type=bind,source=/etc/letsencrypt,target=/etc/nginx/ssl,readonly
-# URL_HOST=
 #
 ### Required by Redis
 # DOMAIN_NAME=
@@ -25,11 +33,19 @@
 SCALELITE_DOCKER_IMAGE=blindsidenetwks/scalelite:v1.0
 #
 ### Required when recordings are enabled and using BigBlueButton Playback Proxy to serve the recordings.
-SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-amazonlinux
+SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:focal-260-amazonlinux
+#
+### Optional for nginx when using docker-compose
+# NGINX_DOCKER_IMAGE=
+# CERTBOT_DOCKER_IMAGE=
 #
 ### Optional for postgres when using docker-compose
 # POSTGRES_USER=
 # POSTGRES_PASSWORD=
+# POSTGRES_DOCKER_IMAGE=
+#
+### Optional for redis when using docker-compose
+# REDIS_DOCKER_IMAGE=
 #
 ### Optional for init-letsencrypt.sh when using certbot for generating signed SSL certificates
 #LETSENCRYPT_EMAIL=
@@ -44,8 +60,8 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-am
 # RECORDING_IMPORT_UNPUBLISHED=false
 #
 ### Optional when using docker-compose-dev.yml
-# DOCKER_VOL_POSTGRES_DATA=~/scalelite-run/data/postgres
-# DOCKER_VOL_REDIS_DATA=~/scalelite-run/data/redis
+# DOCKER_VOL_POSTGRES_DATA=/home/ubuntu/scalelite-run/data/postgres/db
+# DOCKER_VOL_REDIS_DATA=data/redis/db
 #
 ### Optional for development when using different profiles
 # DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy
@@ -55,13 +71,13 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:bionic-230-am
 #   scalelite-local
 #   scalelite-local-protected
 #   scalelite-cluster
-
+#
 ### Optional for the deployment, but required when using init-letsencrypt.sh script
 # LETSENCRYPT_EMAIL=
 # LETSENCRYPT_STAGING=0
 #   Set to 1 if you're testing your setup to avoid hitting request limits
 
-### Multitenancy
+### Optional for Multitenancy
 # MULTITENANCY_ENABLED=
 # You can use this image to automate the DNS challenge if you are using the AWS suite
-# CERTBOT_IMAGE=certbot/dns-route53
+# CERTBOT_DOCKER_IMAGE=certbot/dns-route53
