@@ -59,9 +59,11 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:focal-260-ama
 # RECORDING_IMPORT_POLL_INTERVAL=60
 # RECORDING_IMPORT_UNPUBLISHED=false
 #
-### Optional when using docker-compose-dev.yml
-# DOCKER_VOL_POSTGRES_DATA=/home/ubuntu/scalelite-run/data/postgres/db
-# DOCKER_VOL_REDIS_DATA=data/redis/db
+### Optional for persistent data storage with docker-compose
+### Defaults to {PWD}/data/postgres/db and {PWD}/data/redis/db if not specified
+### Note: Docker requires ABSOLUTE paths for bind mounts. Use full paths or leave blank for defaults.
+# DOCKER_VOL_POSTGRES_DATA=/home/ubuntu/xdev/scalelite-run/data/postgres/db
+# DOCKER_VOL_REDIS_DATA=/home/ubuntu/xdev/scalelite-run/data/redis/db
 #
 ### Optional for development when using different profiles
 # DOCKER_PROXY_NGINX_TEMPLATE=scalelite-proxy
