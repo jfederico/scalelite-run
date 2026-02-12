@@ -7,10 +7,10 @@ Script for integrating BigBlueButton Recordings with Scaleite.
 USAGE:
     wget -qO- https://raw.githubusercontent.com/jfederico/scalelite-run/master/init-recordings-bigbluebutton.sh | bash -s -- [OPTIONS]
 OPTIONS
-  -h <scalelite-hostname>          Configure server with <scalelite-hostname> (required)
-  -u <scalelite-username>          Scalelite username <scalelite-username> (optional)
-  -p <scalelite-ssh-port>          SSH port in Scalelite server <scalelite-ssh-port> (optional)
-  -r <scalelite-id_rsa>            File wiht id_rsa private key to be used to ssh into Scalelite server <scalelite-id_rsa> (optional)
+  -s <scalelite-hostname>          Configure server with <scalelite-hostname> (required)
+  -u <scalelite-username>          Scalelite username <scalelite-username> (optional, defaults to 'bigbluebutton')
+  -p <scalelite-ssh-port>          SSH port in Scalelite server <scalelite-ssh-port> (optional, defaults to 22)
+  -r <scalelite-id_rsa>            File with id_rsa private key to be used to ssh into Scalelite server <scalelite-id_rsa> (optional, defaults to 'id_rsa')
 EXAMPLES:
 Sample options for setup a BigBlueButton server
     -s scalelite.example.com
@@ -23,7 +23,7 @@ exit 0
 
 main() {
   export DEBIAN_FRONTEND=noninteractive
-  while builtin getopts "s:u:p" opt "${@}"; do
+  while builtin getopts "s:u:p:r:" opt "${@}"; do
 
     case $opt in
       s)
@@ -33,7 +33,7 @@ main() {
         fi
         ;;
       u)
-        USER=$OPTARG
+        SCALELITE_USER=$OPTARG
         ;;
       p)
         PORT=$OPTARG
@@ -123,7 +123,7 @@ if [ -f "/home/bigbluebutton/.ssh/config" ]; then
 fi
 echo "Host scalelite-spool" | sudo tee -a /home/bigbluebutton/.ssh/config
 echo "  HostName $HOST" | sudo tee -a /home/bigbluebutton/.ssh/config
-echo "  User ${USER:-bigbluebutton}" | sudo tee -a /home/bigbluebutton/.ssh/config
+echo "  User ${SCALELITE_USER:-bigbluebutton}" | sudo tee -a /home/bigbluebutton/.ssh/config
 echo "  Port ${PORT:-22}" | sudo tee -a /home/bigbluebutton/.ssh/config
 echo "  IdentityFile /home/bigbluebutton/.ssh/${ID_RSA:-id_rsa}" | sudo tee -a /home/bigbluebutton/.ssh/config
 chown bigbluebutton.bigbluebutton /home/bigbluebutton/.ssh/config
