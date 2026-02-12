@@ -32,7 +32,7 @@ services:
     volumes:
       - redis-data:/data
       - ./data/redis/conf/redis.conf.template:/usr/local/etc/redis/redis.conf.template
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ./data/certbot/conf/:/etc/letsencrypt
     command: /bin/sh -c "sed -e 's/$$HOSTNAME/${REDIS_HOST:-redis}.${DOMAIN_NAME:-user.blindside-ps.dev}/' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && exec redis-server --appendonly yes"
 
   certbot:
@@ -57,7 +57,8 @@ services:
       - ./log/scalelite-proxy/:/var/log/nginx
       - ./data/proxy/nginx/sites.template.${DOCKER_PROXY_NGINX_TEMPLATE:-scalelite-proxy}:/etc/nginx/sites.template
       - ./data/proxy/nginx/sites-common:/etc/nginx/sites-common
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ./data/certbot/conf/:/etc/letsencrypt
+      - ./data/certbot/www/:/var/www/certbot
       - ./docker/nginx-entrypoint.sh:/usr/local/bin/nginx-entrypoint.sh
     depends_on:
       - certbot
@@ -89,7 +90,8 @@ services:
       - RECORDING_DISABLED=${RECORDING_DISABLED:-false}
       - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-false}
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
-      - RAILS_ENV=${RAILS_ENV:-production}
+      # Development: Uncomment to run Rails in development mode
+      # - RAILS_ENV=development
     volumes:
       - ./log/scalelite-api/:/srv/scalelite/log/
       - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton

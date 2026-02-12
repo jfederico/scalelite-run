@@ -1,11 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 # Fix SSL certificate permissions BEFORE nginx starts
 echo "Fixing SSL certificate permissions..."
-find /etc/letsencrypt/live -type d -exec chmod 755 {} \; 2>/dev/null || true
-find /etc/letsencrypt/archive -type d -exec chmod 755 {} \; 2>/dev/null || true
-find /etc/letsencrypt -name 'privkey*.pem' -exec chmod 644 {} \; 2>/dev/null || true
+if [ -d "/etc/letsencrypt" ]; then
+	chmod 755 /etc/letsencrypt 2>/dev/null || true
+	find /etc/letsencrypt -type d -exec chmod 755 {} \; 2>/dev/null || true
+	find /etc/letsencrypt -name 'privkey*.pem' -exec chmod 644 {} \; 2>/dev/null || true
+else
+	echo "⚠ /etc/letsencrypt not found; skipping permission fixes"
+fi
 echo "✓ Certificate permissions fixed"
 
 # Configure nginx with the template

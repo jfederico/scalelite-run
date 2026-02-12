@@ -8,7 +8,7 @@ The `docker-compose-dev.yml` configuration is optimized for:
 - Local development with exposed database ports
 - Direct code mounting for live editing
 - Faster iteration without container rebuilds
-- SSL certificates from host system
+- SSL certificates stored in ./data/certbot/conf (same layout as production)
 - Simplified debugging access
 
 ## Prerequisites
@@ -17,7 +17,7 @@ The `docker-compose-dev.yml` configuration is optimized for:
 - Ubuntu 22.04 LTS (or similar Linux distribution)
 - Git
 - Docker and Docker Compose v2
-- Certbot (for SSL certificate generation)
+- Certbot (optional if using the Dockerized certbot commands below)
 - Minimum 2 vCPU, 4GB RAM for development
 
 ## Quick Start for Development
@@ -48,27 +48,24 @@ sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com/" .env
 
 ### 3. Generate SSL Certificates
 
-For development, use DNS challenge with manual verification:
+For development, use DNS challenge with manual verification and store certs in
+`./data/certbot/conf` (aligned with docker-compose-dev.yml):
 
 ```bash
 source ./.env
-certbot certonly --manual \
-  -d $SL_HOST.$DOMAIN_NAME \
-  --agree-tos \
-  --no-bootstrap \
-  --manual-public-ip-logging-ok \
-  --preferred-challenges=dns \
-  --email your@email.com \
-  --server https://acme-v02.api.letsencrypt.org/directory
-
-certbot certonly --manual \
-  -d redis.$DOMAIN_NAME \
-  --agree-tos \
-  --no-bootstrap \
-  --manual-public-ip-logging-ok \
-  --preferred-challenges=dns \
-  --email your@email.com \
-  --server https://acme-v02.api.letsencrypt.org/directory
+docker run --rm -it \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  -v ./log/certbot:/var/log/letsencrypt \
+  certbot/certbot certonly \
+    --manual \
+    --preferred-challenges=dns \
+    -d $SL_HOST.$DOMAIN_NAME \
+    -d redis.$DOMAIN_NAME \
+    --agree-tos \
+    --manual-public-ip-logging-ok \
+    --email your@email.com \
+    --server https://acme-v02.api.letsencrypt.org/directory
 ```
 
 **Note:** For alternative SSL setup methods including AWS Route53 automation, see the [main README](README.md#3-set-up-ssl-certificates).
