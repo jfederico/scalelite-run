@@ -396,17 +396,28 @@ Use this file for local development on your machine.
 - SSL certificates loaded from host system (`/etc/letsencrypt`)
 - Nginx runs without periodic reload (faster startup and iteration)
 - Simplified setup without needing certbot to generate certificates
+- Optional local code mounting for active Scalelite development
 
 **When to use:**
 - Local development and debugging
 - When you want to inspect databases directly
 - When you want faster container restarts
 - When you have pre-existing SSL certificates on your host system
+- When developing on Scalelite source code
 
 **Usage:**
 ```bash
-docker-compose -f docker-compose-dev.yml up -d
+docker compose -f docker-compose-dev.yml up -d
 ```
+
+**For active development on Scalelite code**, see the comprehensive [Development Guide (README-dev.md)](README-dev.md) which covers:
+- Local code mounting and live editing
+- Database access and debugging
+- Running tests and code quality checks
+- Recording setup for development
+- Development best practices
+
+
 
 ## Operations and Management
 

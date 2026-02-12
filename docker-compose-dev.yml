@@ -89,12 +89,21 @@ services:
       - RECORDING_DISABLED=${RECORDING_DISABLED:-false}
       - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-false}
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
+      - RAILS_ENV=${RAILS_ENV:-production}
     volumes:
       - ./log/scalelite-api/:/srv/scalelite/log/
       - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
+      # Development: Uncomment to mount local Scalelite code (requires cloning the repo to ./data/scalelite-api)
+      # - ./data/scalelite-api:/srv/scalelite:delegated
+      # Exclude these directories when mounting local code:
+      # - /srv/scalelite/tmp
+      # - /srv/scalelite/log
+      # - /srv/scalelite/.git
     depends_on:
       - postgres
       - redis
+    # Development: Uncomment for live code reloading with local mount
+    # command: /bin/sh -c "bundle install && bundle exec rails server -b 0.0.0.0"
     logging:
       driver: journald
 

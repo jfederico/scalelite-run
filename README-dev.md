@@ -1,128 +1,393 @@
-# Installation (short version)
+# Scalelite Development Guide
 
-On an Ubuntu 22.04 as the host machine.
+This guide covers local development setup for working on Scalelite code and testing with `docker-compose-dev.yml`.
+
+## Overview
+
+The `docker-compose-dev.yml` configuration is optimized for:
+- Local development with exposed database ports
+- Direct code mounting for live editing
+- Faster iteration without container rebuilds
+- SSL certificates from host system
+- Simplified debugging access
 
 ## Prerequisites
 
-This machine needs to be updated and have installed:
-
+**Host machine requirements:**
+- Ubuntu 22.04 LTS (or similar Linux distribution)
 - Git
-- [Docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04)
-- [Docker Compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-22-04)
-- Certbot
+- Docker and Docker Compose v2
+- Certbot (for SSL certificate generation)
+- Minimum 2 vCPU, 4GB RAM for development
 
-## Fetching the scripts
+## Quick Start for Development
 
-```
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/jfederico/scalelite-run
 cd scalelite-run
 ```
 
-## Initializing environment variables
+### 2. Setup Environment Variables
 
-Create a new `.env` file based on the `dotenv` file included.
+Create environment configuration:
 
-```
+```bash
 cp dotenv .env
 ```
 
-Most required variables are preset by default, the ones that must be set before starting are:
+Generate required secrets:
 
-```
-SECRET_KEY_BASE=
-LOADBALANCER_SECRET=
-SL_HOST=
-DOMAIN_NAME=
-```
-
-Obtain the value for SECRET_KEY_BASE and LOADBALANCER_SECRET with:
-
-```
+```bash
 sed -i "s/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=$(openssl rand -hex 64)/" .env
 sed -i "s/LOADBALANCER_SECRET=.*/LOADBALANCER_SECRET=$(openssl rand -hex 24)/" .env
+sed -i "s/SL_HOST=.*/SL_HOST=sl/" .env
+sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com/" .env
 ```
 
-Set the hostname on SL_HOST (E.g. sl)
+### 3. Generate SSL Certificates
 
-```
-sed -i "s/SL_HOST=.*/SL_HOST=sl" .env
-```
+For development, use DNS challenge with manual verification:
 
-Set the domain name on DOMAIN_NAME (E.g. example.com)
-
-```
-sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com" .env
-```
-
-## Generate LetsEncrypt SSL certificates manually
-
-```
+```bash
 source ./.env
-certbot certonly --manual -d $SL_HOST.$DOMAIN_NAME --agree-tos --no-bootstrap --manual-public-ip-logging-ok --preferred-challenges=dns --email <YOUR_ENMAIL> --server https://acme-v02.api.letsencrypt.org/director
-certbot certonly --manual -d redis.$DOMAIN_NAME --agree-tos --no-bootstrap --manual-public-ip-logging-ok --preferred-challenges=dns --email <YOUR_ENMAIL> --server https://acme-v02.api.letsencrypt.org/director
+certbot certonly --manual \
+  -d $SL_HOST.$DOMAIN_NAME \
+  --agree-tos \
+  --no-bootstrap \
+  --manual-public-ip-logging-ok \
+  --preferred-challenges=dns \
+  --email your@email.com \
+  --server https://acme-v02.api.letsencrypt.org/directory
+
+certbot certonly --manual \
+  -d redis.$DOMAIN_NAME \
+  --agree-tos \
+  --no-bootstrap \
+  --manual-public-ip-logging-ok \
+  --preferred-challenges=dns \
+  --email your@email.com \
+  --server https://acme-v02.api.letsencrypt.org/directory
 ```
 
-## Starting the app
+**Note:** For alternative SSL setup methods including AWS Route53 automation, see the [main README](README.md#3-set-up-ssl-certificates).
 
-Start the services.
+### 4. Start Development Services
 
+```bash
+docker compose -f docker-compose-dev.yml up -d
 ```
-docker-compose up -d
-```
 
-The database must be initialized.
+### 5. Initialize Database
 
-```
+```bash
 docker exec -i scalelite-api bundle exec rake db:setup
 ```
 
-The BBB servers must be added.
+### 6. Add BigBlueButton Servers
+
+```bash
+docker exec -i scalelite-api bundle exec rake servers:add[https://bbb1.example.com/bigbluebutton/api/,secret]
+docker exec -i scalelite-api bundle exec rake servers:enable[SERVER_ID]
+```
+
+## Development with Local Scalelite Code
+
+For active development on Scalelite source code, mount it locally to edit without rebuilding containers.
+
+### Setup Local Code Development
+
+**1. Clone Scalelite repository:**
+
+```bash
+# Use the helper script (recommended)
+./setup-dev.sh
+
+# Or manually clone specific version
+git clone https://github.com/blindsidenetworks/scalelite.git data/scalelite-api
+cd data/scalelite-api
+git checkout v1.6  # or your desired version
+cd ../..
+```
+
+**2. Enable code mounting in `docker-compose-dev.yml`:**
+
+Uncomment these lines in the `scalelite-api` service:
+
+```yaml
+volumes:
+  - ./data/scalelite-api:/srv/scalelite:delegated
+  - /srv/scalelite/tmp
+  - /srv/scalelite/log
+  - /srv/scalelite/.git
+
+command: /bin/sh -c "bundle install && bundle exec rails server -b 0.0.0.0"
+```
+
+**3. Set development mode (optional):**
+
+Add to `.env`:
+```bash
+RAILS_ENV=development
+```
+
+**4. Restart with local code:**
+
+```bash
+docker compose -f docker-compose-dev.yml down
+docker compose -f docker-compose-dev.yml up -d
+
+# Watch startup
+docker compose -f docker-compose-dev.yml logs -f scalelite-api
+```
+
+### Development Workflow
+
+**Access Rails console:**
+```bash
+docker exec -it scalelite-api bundle exec rails console
+```
+
+**Run database migrations:**
+```bash
+docker exec scalelite-api bundle exec rake db:migrate
+```
+
+**Run tests:**
+```bash
+# Full test suite
+docker exec scalelite-api bundle exec rspec
+
+# Specific test file
+docker exec scalelite-api bundle exec rspec spec/models/server_spec.rb
+
+# With coverage report
+docker exec scalelite-api bundle exec rspec --format documentation
+```
+
+**Debug with breakpoints:**
+```bash
+# Attach to container for pry/byebug interaction
+docker attach scalelite-api
+
+# View logs with breakpoints
+docker compose -f docker-compose-dev.yml logs -f scalelite-api
+```
+
+**Code quality checks:**
+```bash
+# Run rubocop linter
+docker exec scalelite-api bundle exec rubocop
+
+# Auto-fix style issues
+docker exec scalelite-api bundle exec rubocop -a
+```
+
+**Adding new gems:**
+```bash
+# 1. Edit Gemfile in ./data/scalelite-api/
+# 2. Install dependencies
+docker exec scalelite-api bundle install
+
+# 3. Restart if needed
+docker compose -f docker-compose-dev.yml restart scalelite-api
+```
+
+### Database Access
+
+**PostgreSQL:**
+```bash
+# Connect from host
+psql -h localhost -U postgres -d scalelite
+# Password from .env: POSTGRES_PASSWORD
+
+# Or from container
+docker exec -it postgres psql -U postgres -d scalelite
+```
+
+**Redis:**
+```bash
+# Connect from host
+redis-cli -h localhost
+
+# Or from container
+docker exec -it redis redis-cli
+```
+
+### Debugging Tips
+
+- **Live code changes**: Edit files in `./data/scalelite-api/` - Rails reloads automatically in development mode
+- **Volume exclusions**: Always exclude `/srv/scalelite/tmp`, `/srv/scalelite/log`, and `/srv/scalelite/.git` to avoid conflicts
+- **Performance**: Use `:delegated` mount option on macOS for better file sync performance
+- **Bundle issues**: If gems don't load, restart the container: `docker compose -f docker-compose-dev.yml restart scalelite-api`
+- **Database seeds**: Load test data with `docker exec scalelite-api bundle exec rake db:seed`
+
+### Debugging Tips
+
+- **Live code changes**: Edit files in `./data/scalelite-api/` - Rails reloads automatically in development mode
+- **Volume exclusions**: Always exclude `/srv/scalelite/tmp`, `/srv/scalelite/log`, and `/srv/scalelite/.git` to avoid conflicts
+- **Performance**: Use `:delegated` mount option on macOS for better file sync performance
+- **Bundle issues**: If gems don't load, restart the container: `docker compose -f docker-compose-dev.yml restart scalelite-api`
+- **Database seeds**: Load test data with `docker exec scalelite-api bundle exec rake db:seed`
+
+## Recording Development Setup
+
+### Configuring BigBlueButton Server for Recording Transfer
+
+Follow the main setup to initialize the BBB server, then customize for local development.
+
+**1. Edit SSH config on BBB server:**
+
+Edit `/home/bigbluebutton/.ssh/config`:
 
 ```
-docker exec -i scalelite-api bundle exec rake servers:add[https://bbb25.example.com/bigbluebutton/api,secret]
-docker exec -i scalelite-api bundle exec rake servers:enable[bbb25.example.com]
-```
-
-## Setup recordings
-
-### Configuring the BBB server
-
-Init the bbb server as explained in the documentation
-
-Edit the `/home/bigbluebutton/.ssh/config` file
-
-1. make sure the configured domain points to your local machine as this user needs to ssh to it
-
-2. replace the default bigbluebutton with your own username (as you don't want to add bigbluebutton username to your local machine)
-
 Host scalelite-spool
-  HostName sl.jesus.blindside-dev.com
-  User <YOUR_USERNAME>
+  HostName sl.example.com
+  User <YOUR_USERNAME>          # Use your local username, not 'bigbluebutton'
   Port 22
   IdentityFile /home/bigbluebutton/.ssh/id_rsa
+```
 
-3. In your local machine, add the public key generated for the bigbluebutton user in the bbb machine into your own `~/.ssh/authorized_keys` file.
+**2. Add BBB server's public key to your local machine:**
 
-4. ssh into your own computer using the config env_file
+```bash
+# On your development machine
+nano ~/.ssh/authorized_keys
+# Paste the public key from /home/bigbluebutton/.ssh/id_rsa.pub on the BBB server
+```
+
+**3. Test SSH connection from BBB server:**
+
+```bash
+# On BBB server
 ssh scalelite-spool
-
-5. Edit the variable that indicates where the files will be placed
-
-Edit `/usr/local/bigbluebutton/core/scripts/scalelite.yml`
-
-```
-# spool_dir: scalelite-spool:/var/bigbluebutton/spool 	## original
-spool_dir: scalelite-spool:/home/<YOUR_USERNAME>/spool		## adapted
+# Accept the host key fingerprint
 ```
 
-Accept the key, this is done only once.
+**4. Configure recording spool directory:**
 
-### Final touches in your Local Machine
+Edit `/usr/local/bigbluebutton/core/scripts/scalelite.yml` on BBB server:
 
-1. Make sure your user has rights to write in the `/mnt/scalelite-recordings/var/bigbluebutton/spool/`
+```yaml
+# Original:
+# spool_dir: scalelite-spool:/var/bigbluebutton/spool
 
-sudo chown -R root.<YOUR_USERNAME> /mnt/scalelite-recordings/var/bigbluebutton/spool/
+# Development (local machine):
+spool_dir: scalelite-spool:/home/<YOUR_USERNAME>/spool
+```
 
-2. Create a symbolic link to that spool directory
+### Local Machine Setup for Recordings
 
-ln -s /mnt/scalelite-recordings/var/bigbluebutton/spool/ /home/YOUR_USERNAME/spool
+**1. Set permissions for recording spool:**
+
+```bash
+sudo chown -R root:$USER /mnt/scalelite-recordings/var/bigbluebutton/spool/
+sudo chmod -R 775 /mnt/scalelite-recordings/var/bigbluebutton/spool/
+```
+
+**2. Create symbolic link:**
+
+```bash
+ln -s /mnt/scalelite-recordings/var/bigbluebutton/spool/ ~/spool
+```
+
+**3. Verify recording transfer:**
+
+Create a test recording on your BBB server and check:
+
+```bash
+# Watch for incoming recordings
+watch -n 5 'ls -la ~/spool'
+
+# Check Scalelite recording importer logs
+docker compose -f docker-compose-dev.yml logs -f scalelite-recording-importer
+```
+
+## Development Best Practices
+
+### Code Quality
+
+- Run tests before committing: `docker exec scalelite-api bundle exec rspec`
+- Check code style: `docker exec scalelite-api bundle exec rubocop`
+- Review security: `docker exec scalelite-api bundle exec brakeman`
+
+### Git Workflow
+
+```bash
+# Create feature branch
+git checkout -b feature/my-feature
+
+# Make changes in ./data/scalelite-api/
+# Test thoroughly
+
+# Commit to Scalelite repository (not scalelite-run)
+cd data/scalelite-api
+git add .
+git commit -m "feat: add new feature"
+git push origin feature/my-feature
+```
+
+### Container Management
+
+```bash
+# View all containers
+docker compose -f docker-compose-dev.yml ps
+
+# Restart specific service
+docker compose -f docker-compose-dev.yml restart scalelite-api
+
+# View resource usage
+docker stats
+
+# Clean up unused resources
+docker system prune -a
+```
+
+### Troubleshooting
+
+**Port conflicts:**
+```bash
+# Check if ports are in use
+sudo lsof -i :5432  # PostgreSQL
+sudo lsof -i :6379  # Redis
+sudo lsof -i :8001  # Recordings proxy
+```
+
+**Database connection issues:**
+```bash
+# Reset database
+docker exec scalelite-api bundle exec rake db:reset
+
+# Check PostgreSQL logs
+docker compose -f docker-compose-dev.yml logs postgres
+```
+
+**Rails console not loading:**
+```bash
+# Clear Spring cache
+docker exec scalelite-api bin/spring stop
+docker compose -f docker-compose-dev.yml restart scalelite-api
+```
+
+## Production Deployment
+
+When your development is complete, test with production configuration:
+
+```bash
+# Switch to production compose file
+docker compose down
+docker compose up -d
+
+# Run production checks
+docker exec scalelite-api bundle exec rake scalelite:check
+```
+
+For full production deployment guide, see the [main README](README.md).
+
+## Additional Resources
+
+- [Scalelite GitHub Repository](https://github.com/blindsidenetworks/scalelite)
+- [BigBlueButton Documentation](https://docs.bigbluebutton.org/)
+- [Ruby on Rails Guides](https://guides.rubyonrails.org/)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
