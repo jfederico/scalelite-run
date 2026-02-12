@@ -23,8 +23,6 @@ This repository provides a complete `docker-compose` configuration for deploying
 
 ## Quick Start
 
-## Quick Start
-
 ### Prerequisites
 
 **On your host machine, you need:**
@@ -131,15 +129,140 @@ sed -i "s/LETSENCRYPT_EMAIL=.*/LETSENCRYPT_EMAIL=admin@example.com/" .env
 
 #### 3. Set Up SSL Certificates
 
+For **production deployments** with publicly accessible domains, use HTTP challenge:
+
 ```bash
-# Generate Let's Encrypt certificates
+# Generate Let's Encrypt certificates (HTTP validation)
 ./init-letsencrypt.sh
 ```
 
 This script uses certbot to create valid HTTPS certificates and will:
 - Create certificate directories
-- Generate certificates for your domain
+- Generate certificates for your domain via HTTP challenge
 - Configure automatic renewal
+
+**For development or DNS-based validation**, use DNS challenge instead:
+
+```bash
+# Method 1: Interactive DNS challenge (manual for testing)
+docker run --rm -it \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  certbot/certbot certonly \
+    --manual \
+    --preferred-challenges dns \
+    -d sl.example.com
+
+# Follow the prompts to add TXT records to your DNS provider
+```
+
+**For AWS Route53 (Automated DNS Challenge):**
+
+```bash
+# Option A: Using environment variables for credentials
+docker run --rm \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  -e AWS_ACCESS_KEY_ID=your_access_key \
+  -e AWS_SECRET_ACCESS_KEY=your_secret_key \
+  certbot/dns-route53 certonly \
+    --dns-route53 \
+    --dns-route53-propagation-seconds 30 \
+    -d sl.example.com \
+    -d "*.sl.example.com"
+
+# Option B: Using AWS credentials file
+docker run --rm \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  -v ~/.aws/credentials:/root/.aws/credentials:ro \
+  certbot/dns-route53 certonly \
+    --dns-route53 \
+    --dns-route53-propagation-seconds 30 \
+    -d sl.example.com \
+    -d "*.sl.example.com"
+```
+
+**For other DNS providers:**
+
+```bash
+# Azure DNS
+docker run --rm \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  certbot/dns-azure certonly \
+    --dns-azure \
+    -d sl.example.com
+
+# Google Cloud DNS
+docker run --rm \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  -v /path/to/gcp-credentials.json:/gcp-credentials.json:ro \
+  certbot/dns-google certonly \
+    --dns-google \
+    --dns-google-credentials /gcp-credentials.json \
+    -d sl.example.com
+
+# Cloudflare DNS
+docker run --rm \
+  -v ./data/certbot/conf:/etc/letsencrypt \
+  -v ./data/certbot/www:/var/www/certbot \
+  -v ~/.secrets/certbot/cloudflare.ini:/root/.secrets/certbot/cloudflare.ini:ro \
+  certbot/dns-cloudflare certonly \
+    --dns-cloudflare \
+    --dns-cloudflare-credentials /root/.secrets/certbot/cloudflare.ini \
+    -d sl.example.com
+```
+
+**When to use DNS challenge:**
+- Development environments with self-signed certificates
+- Internal deployments behind firewalls
+- When HTTP port 80 is blocked or unavailable
+- Multi-domain or wildcard certificates
+- Automated certificate renewal with DNS API integration
+
+**AWS Route53 IAM Permissions Required:**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:GetChange"
+      ],
+      "Resource": "arn:aws:route53:::change/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": "arn:aws:route53:::hostedzone/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ListHostedZonesByName"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+**Verify certificate generation:**
+
+```bash
+# Check certificate details
+docker exec certbot certbot certificates
+
+# List generated certificates
+ls -la ./data/certbot/conf/live/sl.example.com/
+```
 
 #### 4. Start the Services
 
