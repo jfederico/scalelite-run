@@ -151,7 +151,12 @@ echo 'extra_rsync_opts: ["-av", "--no-owner", "--chmod=F664"]' | tee -a $CORE_SC
 public_key=$(cat /home/bigbluebutton/.ssh/id_rsa.pub)
 set +x
 echo "**********************************************************************"
-echo "Add this key to /home/bigbluebutton/.ssh/authorized_keys in scalelite:"
+echo "On the Scalelite server, run:"
+echo
+echo "  sudo su - bigbluebutton"
+echo "  nano ~/.ssh/authorized_keys"
+echo
+echo "Then append the following public key:"
 echo "**********************************************************************"
 echo
 echo "$public_key"
