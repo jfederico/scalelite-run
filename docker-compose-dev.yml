@@ -79,7 +79,10 @@ services:
       - scalelite-api
 
   scalelite-api:
-    image: ${SCALELITE_DOCKER_IMAGE:-blindsidenetwks/scalelite:v1.1}
+    image: ${SCALELITE_DEV_IMAGE:-scalelite-dev:local}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scalelite-dev
     container_name: scalelite-api
     restart: unless-stopped
     env_file:
@@ -90,8 +93,7 @@ services:
       - RECORDING_DISABLED=${RECORDING_DISABLED:-false}
       - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-false}
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
-      # Development: Uncomment to run Rails in development mode
-      # - RAILS_ENV=development
+      - RAILS_ENV=${RAILS_ENV:-development}
     volumes:
       - ./log/scalelite-api/:/srv/scalelite/log/
       - ${SCALELITE_RECORDING_DIR:-/mnt/scalelite-recordings/var/bigbluebutton}:/var/bigbluebutton
@@ -110,7 +112,7 @@ services:
       driver: journald
 
   scalelite-poller:
-    image: ${SCALELITE_DOCKER_IMAGE:-blindsidenetwks/scalelite:v1.1}
+    image: ${SCALELITE_DEV_IMAGE:-scalelite-dev:local}
     container_name: scalelite-poller
     restart: unless-stopped
     env_file:
@@ -129,7 +131,7 @@ services:
       driver: journald
 
   scalelite-recording-importer:
-    image: ${SCALELITE_DOCKER_IMAGE:-blindsidenetwks/scalelite:v1.1}
+    image: ${SCALELITE_DEV_IMAGE:-scalelite-dev:local}
     container_name: scalelite-recording-importer
     restart: unless-stopped
     env_file:
