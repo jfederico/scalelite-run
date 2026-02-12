@@ -1,90 +1,246 @@
 # scalelite-run
 
-A simple way to deploy Scalelite as for production using docker-compose.
+A Docker Compose setup for deploying Scalelite as a production-ready BigBlueButton load balancer.
 
 ## Overview
 
-[Scalelite](https://github.com/blindsidenetworks/scalelite) is an open-source load balancer, designed specifically for [BigBlueButton](https://bigbluebutton.org/), that evenly spreads the meeting load over a pool of BigBlueButton servers. It makes the pool of BigBlueButton servers appear to a front-end application such as Moodle [2], as a single and yet very scalable BigBlueButton server.
+[Scalelite](https://github.com/blindsidenetworks/scalelite) is an open-source load balancer designed specifically for [BigBlueButton](https://bigbluebutton.org/), that evenly spreads meeting load over a pool of BigBlueButton servers. It makes the pool appear to external applications (such as Moodle) as a single, highly scalable BigBlueButton server.
 
-It was released by [Blindside Networks](https://blindsidenetworks.com/) under the AGPL license on March 13, 2020, in response to the high demand of Universities looking into scaling BigBlueButton in response to the [COVID-19 pandemic lock-downs](https://campustechnology.com/articles/2020/03/03/coronavirus-pushes-online-learning-forward.aspx).
+**Key Features:**
+- Open source under AGPL license (released by Blindside Networks in March 2020)
+- Professional-grade load balancing and failover capabilities
+- Support for recordings aggregation
+- Docker-based deployment with production security
 
-The full source code is available on GitHub and pre-built docker images can be found on [DockerHub](https://hub.docker.com/r/blindsidenetwks/scalelite).
+**Architecture:**
+Scalelite consists of four main components:
+1. **Nginx Proxy** - Custom-built nginx handling BigBlueButton-compatible requests
+2. **Scalelite API** - Ruby on Rails application implementing the BigBlueButton API and request routing
+3. **Meeting Poller** - Background job monitoring registered BigBlueButton server status
+4. **Recording Importer** - Background job aggregating recordings from BigBlueButton servers
 
-Scaleite itself is a ruby on rails application.
+This repository provides a complete `docker-compose` configuration for deploying all these components together.
 
-For its deployment it is required some experience with BigBlueButton and Scalelite itself, and all the tools and components used as part of the stack such as redis, postgres, nginx, docker and docker-compose, as well as ubuntu and AWS infrastructure.
+## Quick Start
 
-For those new to system administration or any of the components mentioned the article [Scalelite lazy deployment
-](https://jffederico.medium.com/scalelite-lazy-deployment-745a7be849f6) is a step-by-step guide on how to complete a full installation of Scalelite on AWS using this script. Also [Scalelite lazy deployment (Part II)](https://jffederico.medium.com/scalelite-lazy-deployment-part-ii-ca3e4bf82f8d) is a step-by-step guide to complete the installation with support for recordings.
-
-## Installation (short version)
-
-On an Ubuntu 22.04 machine available to the Internet (AWS EC2 instance, LXC container, VMWare machine etc).
+## Quick Start
 
 ### Prerequisites
 
-This machine needs to be updated and have installed:
+**On your host machine, you need:**
+- Ubuntu 22.04 LTS (or other Linux distribution)
+- Internet connectivity for the deployment
+- Root or sudo access
+- Minimum t3.small equivalent resources (2 vCPU, 2GB RAM)
 
+**Software requirements:**
 - Git
-- [Docker](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04)
-- [Docker Compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-22-04)
+- Docker
+- Docker Compose v2
+- OpenSSL (for generating secrets)
 
-### Fetching the scripts
+### Infrastructure Setup (AWS Example)
 
+If deploying on AWS, set up:
+1. **VPC** - Virtual Private Cloud for network isolation
+2. **EC2 Instance** - Recommended t3.small or larger with Ubuntu 22.04
+3. **Route 53 Hosted Zone** - For DNS management (e.g., `example.com`)
+4. **Security Groups** - Allow ports 80, 443 for HTTPS/HTTP, and restrict SSH
+5. **Elastic IP** - (Optional) For stable public IP address
+
+### Server Preparation
+
+Before deploying Scalelite, prepare your server:
+
+```bash
+# Update system packages
+sudo apt update && sudo apt upgrade -y
+
+# Install dependencies
+sudo apt install -y git docker.io docker-compose curl wget
+
+# Enable Docker daemon and current user
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+# (Optional) Add swap memory for systems with limited RAM
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile swap swap defaults 0 0' | sudo tee -a /etc/fstab
 ```
+
+### Deployment Steps
+
+#### 1. Clone the Repository
+
+```bash
 git clone https://github.com/jfederico/scalelite-run
 cd scalelite-run
 ```
 
-### Initializing environment variables
+#### 2. Configure Environment Variables
 
-Create a new .env file based on the dotenv file included.
-
-```
+```bash
+# Copy the template
 cp dotenv .env
+
+# Edit the .env file with your settings
+nano .env
 ```
 
-Most required variables are pre-set by default, the ones that must be set before starting are:
+Required variables:
 
-```
-SECRET_KEY_BASE=
-LOADBALANCER_SECRET=
-SL_HOST=
-DOMAIN_NAME=
+```bash
+# Generated secrets (use openssl commands below)
+SECRET_KEY_BASE=                          # Generated: openssl rand -hex 64
+LOADBALANCER_SECRET=                      # Generated: openssl rand -hex 24
+
+# Your deployment details
+SL_HOST=sl                                # Subdomain (e.g., 'sl' for sl.example.com)
+DOMAIN_NAME=example.com                   # Your domain
+
+# Email for Let's Encrypt certificates
+LETSENCRYPT_EMAIL=admin@example.com       # Certificate notifications
+
+# (Optional) BigBlueButton recordings directory
+SCALELITE_RECORDING_DIR=/mnt/scalelite-recordings/var/bigbluebutton
 ```
 
-Obtain the value for SECRET_KEY_BASE and LOADBALANCER_SECRET with:
+Generate required secrets:
 
+```bash
+# Generate SECRET_KEY_BASE (64 hex characters)
+openssl rand -hex 64
+
+# Generate LOADBALANCER_SECRET (24 hex characters)
+openssl rand -hex 24
 ```
+
+Update your .env file:
+
+```bash
 sed -i "s/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=$(openssl rand -hex 64)/" .env
 sed -i "s/LOADBALANCER_SECRET=.*/LOADBALANCER_SECRET=$(openssl rand -hex 24)/" .env
+sed -i "s/SL_HOST=.*/SL_HOST=sl/" .env
+sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com/" .env
+sed -i "s/LETSENCRYPT_EMAIL=.*/LETSENCRYPT_EMAIL=admin@example.com/" .env
 ```
 
-Set the hostname on SL_HOST (E.g. sl)
+#### 3. Set Up SSL Certificates
 
-```
-sed -i "s/SL_HOST=.*/SL_HOST=sl" .env
-```
-
-Set the domain name on DOMAIN_NAME (E.g. example.com)
-
-```
-sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com" .env
+```bash
+# Generate Let's Encrypt certificates
+./init-letsencrypt.sh
 ```
 
-Start the services.
+This script uses certbot to create valid HTTPS certificates and will:
+- Create certificate directories
+- Generate certificates for your domain
+- Configure automatic renewal
 
-```
-docker-compose up -d
+#### 4. Start the Services
+
+```bash
+# Start all containers in background
+docker compose up -d
+
+# Monitor startup progress
+docker compose logs -f
+
+# Wait for database initialization (check logs for "database ready")
 ```
 
-Now, the scalelite server is running, but it is not quite yet ready. The database must be initialized.
+#### 5. Initialize the Database
 
-```
+```bash
+# Initialize PostgreSQL database and schema
 docker exec -i scalelite-api bundle exec rake db:setup
 ```
 
-## Choosing the Right Docker Compose File
+#### 6. Verify Installation
+
+```bash
+# Check container status
+docker compose ps
+
+# Test HTTPS endpoint
+curl -vk https://localhost/health_check
+
+# Check logs for errors
+docker compose logs scalelite-proxy
+docker compose logs scalelite-api
+```
+
+### Configuring BigBlueButton Servers
+
+Now that Scalelite is running, you need to register your BigBlueButton servers:
+
+```bash
+# Check Scalelite server status (should show 0 servers)
+docker exec scalelite-api bundle exec rake status
+
+# List registered servers
+docker exec scalelite-api bundle exec rake servers
+
+# Add a BigBlueButton server
+# Format: servers:add[BBB_URL,BBB_SECRET]
+docker exec scalelite-api bundle exec rake servers:add[https://bbb1.example.com/bigbluebutton/api/,your-bbb-secret]
+
+# This returns a server ID, e.g.: 27243e91-35a3-42ee-80a7-bd5980b0728f
+```
+
+**Important:** Include the `/api/` suffix in the BigBlueButton URL.
+
+Enable the registered server:
+
+```bash
+docker exec scalelite-api bundle exec rake servers:enable[27243e91-35a3-42ee-80a7-bd5980b0728f]
+```
+
+Run the poller to check server status:
+
+```bash
+docker exec scalelite-api bundle exec rake poll:all
+```
+
+### Using Scalelite with External Applications
+
+Once configured, use Scalelite in your application:
+
+**Scalelite URL:**
+```
+https://sl.example.com/bigbluebutton/api/
+```
+
+**Scalelite Secret:**
+```
+(Your LOADBALANCER_SECRET from .env)
+```
+
+Configure your application (Moodle, WordPress, etc.) to use these credentials instead of direct BigBlueButton servers.
+
+### Optional: Enable Recordings
+
+To enable recording aggregation from BigBlueButton servers:
+
+**On your Scalelite server:**
+```bash
+./init-recordings-scalelite.sh
+```
+
+**On each BigBlueButton server:**
+```bash
+wget -qO- https://raw.githubusercontent.com/jfederico/scalelite-run/master/init-recordings-bigbluebutton.sh | bash -s -- -s sl.example.com
+```
+
+Follow the on-screen instructions to configure SSH key exchange for secure recording transfer.
+
+
+
+## Deployment Options
 
 This project includes two docker-compose configuration files optimized for different use cases:
 
@@ -93,15 +249,17 @@ This project includes two docker-compose configuration files optimized for diffe
 Use this file for production or production-like deployments.
 
 **Characteristics:**
-- Database services (PostgreSQL, Redis) are **not exposed** to the host (port binding disabled)
+- Database services (PostgreSQL, Redis) are **not exposed** to the host (port binding disabled) for security
 - SSL certificates managed by Let's Encrypt via certbot container
-- Nginx periodic reload (6-hour interval) for automatic certificate renewal
-- Suitable for public deployments with security in mind
+- Nginx automatic certificate renewal with periodic reload
+- Production-grade security and reliability
+- Suitable for public internet-facing deployments
 
-**Usage:**
-```bash
-docker-compose up -d
-```
+**When to use:**
+- Production environments
+- Public internet deployments
+- When you need automatic HTTPS certificate management
+- When you want security hardening (no exposed databases)
 
 ### `docker-compose-dev.yml` - Local Development
 
@@ -116,16 +274,159 @@ Use this file for local development on your machine.
 - Nginx runs without periodic reload (faster startup and iteration)
 - Simplified setup without needing certbot to generate certificates
 
+**When to use:**
+- Local development and debugging
+- When you want to inspect databases directly
+- When you want faster container restarts
+- When you have pre-existing SSL certificates on your host system
+
 **Usage:**
 ```bash
 docker-compose -f docker-compose-dev.yml up -d
 ```
 
-**When to use dev version:**
-- Local development and debugging
-- When you want to inspect databases directly
-- When you want faster container restarts
-- When using pre-existing SSL certificates on your host system
+## Operations and Management
+
+### Common Administration Tasks
+
+#### Monitor System Status
+
+```bash
+# View all running containers
+docker compose ps
+
+# Check specific service logs
+docker compose logs scalelite-api
+docker compose logs scalelite-poller
+docker compose logs scalelite-proxy
+
+# Follow logs in real-time
+docker compose logs -f scalelite-api
+
+# View last 100 lines with timestamp
+docker compose logs --tail=100 --timestamps scalelite-api
+```
+
+#### Server Management
+
+```bash
+# List all registered servers
+docker exec scalelite-api bundle exec rake servers
+
+# Check server status
+docker exec scalelite-api bundle exec rake status
+
+# Add a BigBlueButton server
+docker exec scalelite-api bundle exec rake servers:add[https://bbb1.example.com/bigbluebutton/api/,secret]
+
+# Enable a server for load balancing
+docker exec scalelite-api bundle exec rake servers:enable[SERVER_ID]
+
+# Disable a server gracefully
+docker exec scalelite-api bundle exec rake servers:disable[SERVER_ID]
+
+# Emergency: Stop routing to a server (panic mode)
+docker exec scalelite-api bundle exec rake servers:panic[SERVER_ID]
+
+# Remove a server
+docker exec scalelite-api bundle exec rake servers:remove[SERVER_ID]
+
+# Force immediate status check of all servers
+docker exec scalelite-api bundle exec rake poll:all
+```
+
+#### Backup and Recovery
+
+```bash
+# Backup PostgreSQL database
+docker exec postgres pg_dump -U postgres scalelite > scalelite-backup.sql
+
+# Restore PostgreSQL database
+docker exec -i postgres psql -U postgres scalelite < scalelite-backup.sql
+
+# Backup Redis data
+docker cp redis:/data/dump.rdb ./redis-backup.rdb
+
+# Check certificate status
+docker exec scalelite-proxy ls -la /etc/letsencrypt/live/$(grep DOMAIN_NAME .env | cut -d= -f2)/
+```
+
+#### Update Scalelite
+
+```bash
+# Pull latest changes from repository
+git pull origin master
+
+# Restart containers with updated images
+docker compose pull
+docker compose up -d
+
+# Run any database migrations
+docker exec scalelite-api bundle exec rake db:migrate
+```
+
+### Maintenance
+
+#### Clear Docker Cache and Rebuild
+
+```bash
+# Remove unused containers and images
+docker system prune -a
+
+# Rebuild containers from fresh images
+docker compose build --no-cache
+docker compose up -d
+```
+
+#### Certificate Renewal
+
+Certificates are automatically renewed by certbot. Monitor renewal status:
+
+```bash
+# Check certbot logs
+docker compose logs certbot
+
+# Manual renewal (if needed)
+docker exec certbot certbot renew --dry-run
+
+# Force immediate renewal
+docker exec certbot certbot renew --force-renewal
+```
+
+#### Database Maintenance
+
+```bash
+# Connect to PostgreSQL
+docker exec -it postgres psql -U postgres -d scalelite
+
+# Useful commands once inside psql:
+\dt                 # List tables
+\du                 # List users
+SELECT * FROM servers;  # View registered servers
+\q                  # Exit psql
+```
+
+#### Troubleshoot Container Issues
+
+```bash
+# Restart a specific container
+docker compose restart scalelite-api
+
+# Stop and remove containers (data persists)
+docker compose down
+
+# Complete reset (removes volumes - data loss!)
+docker compose down -v
+
+# Inspect container resource usage
+docker stats
+
+# Debug container network connectivity
+docker compose exec scalelite-api ping redis
+docker compose exec scalelite-api ping postgres
+```
+
+
 
 ## Troubleshooting
 
