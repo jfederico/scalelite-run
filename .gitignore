@@ -12,7 +12,7 @@
 !/data/proxy/
 /data/redis/db*
 !/data/redis/
-/data/postgres/db*
+/data/postgres/*/db*
 !/data/postgres/
 !/data/keycloak/
 

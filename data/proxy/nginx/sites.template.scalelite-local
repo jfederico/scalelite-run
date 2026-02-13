@@ -1,11 +1,15 @@
 #### For <sl.$NGINX_HOSTNAME>
 
+resolver 127.0.0.11 ipv6=off;
+
 upstream docker-scalelite-api {
-    server sl.$NGINX_HOSTNAME:3000;
+    zone docker-scalelite-api 64k;
+    server sl.$NGINX_HOSTNAME:3000 resolve;
 }
 
 upstream docker-scalelite-recordings {
-    server scalelite-recordings:80;
+    zone docker-scalelite-recordings 64k;
+    server scalelite-recordings:80 resolve;
 }
 
 server {

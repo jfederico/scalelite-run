@@ -1,13 +1,17 @@
 #### For <$NGINX_HOSTNAME>
 
+resolver 127.0.0.11 ipv6=off;
+
 upstream docker-scalelite-api {
-    server scalelite-api-1:80 max_fails=3 fail_timeout=30s;
-    server scalelite-api-2:80 max_fails=3 fail_timeout=30s;
+    zone docker-scalelite-api 64k;
+    server scalelite-api-1:80 max_fails=3 fail_timeout=30s resolve;
+    server scalelite-api-2:80 max_fails=3 fail_timeout=30s resolve;
 }
 
 upstream docker-scalelite-recordings {
-    server scalelite-recordings-1:80  max_fails=3 fail_timeout=30s;
-    server scalelite-recordings-2:80  max_fails=3 fail_timeout=30s;
+    zone docker-scalelite-recordings 64k;
+    server scalelite-recordings-1:80  max_fails=3 fail_timeout=30s resolve;
+    server scalelite-recordings-2:80  max_fails=3 fail_timeout=30s resolve;
 }
 
 server {

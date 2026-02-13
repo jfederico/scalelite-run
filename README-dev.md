@@ -46,7 +46,22 @@ sed -i "s/SL_HOST=.*/SL_HOST=sl/" .env
 sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=example.com/" .env
 ```
 
-### 3. Generate SSL Certificates
+### 3. Clone Scalelite Code (Optional)
+
+To enable local code development with live editing:
+
+```bash
+# Clone Scalelite repository to data/scalelite-api
+./setup-dev.sh
+
+# Or manually:
+git clone https://github.com/blindsidenetworks/scalelite.git data/scalelite-api
+cd data/scalelite-api && git checkout v1.7
+```
+
+If you skip this step, the dev environment will use Scalelite code from the Docker image.
+
+### 4. Generate SSL Certificates
 
 For development, use DNS challenge with manual verification and store certs in
 `./data/certbot/conf` (aligned with docker-compose-dev.yml):
@@ -85,110 +100,185 @@ docker exec -i scalelite-api bundle exec rake db:setup
 ### 6. Add BigBlueButton Servers
 
 ```bash
-docker exec -i scalelite-api bundle exec rake servers:add[https://bbb1.example.com/bigbluebutton/api/,secret]
-docker exec -i scalelite-api bundle exec rake servers:enable[SERVER_ID]
+curl -X POST http://localhost:3000/bigbluebutton/api/servers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "hostname": "bbb.example.com",
+    "url": "https://bbb.example.com",
+    "secret": "YOUR_BBB_SECRET"
+  }'
 ```
 
-## Development with Local Scalelite Code
+## Validate Development Environment
 
-For active development on Scalelite source code, mount it locally to edit without rebuilding containers.
+After starting services, verify everything is working:
 
-### Setup Local Code Development
-
-**1. Clone Scalelite repository:**
+### 1. Check All Services Are Running
 
 ```bash
-# Use the helper script (recommended)
-./setup-dev.sh
-
-# Or manually clone specific version
-git clone https://github.com/blindsidenetworks/scalelite.git data/scalelite-api
-cd data/scalelite-api
-git checkout v1.6  # or your desired version
-cd ../..
+docker compose -f docker-compose-dev.yml ps
 ```
 
-**2. Enable code mounting in `docker-compose-dev.yml`:**
+Expected output shows all services with status "Up":
+- certbot
+- postgres
+- redis
+- scalelite-api
+- scalelite-poller
+- scalelite-recording-importer
+- scalelite-proxy
+- scalelite-recordings
 
-Uncomment these lines in the `scalelite-api` service:
-
-```yaml
-volumes:
-  - ./data/scalelite-api:/srv/scalelite:delegated
-  - /srv/scalelite/tmp
-  - /srv/scalelite/log
-  - /srv/scalelite/.git
-
-command: /bin/sh -c "bundle install && bundle exec rails server -b 0.0.0.0"
-```
-
-**3. Set development mode (optional):**
-
-Add to `.env`:
-```bash
-RAILS_ENV=development
-```
-
-**4. Restart with local code:**
+### 2. Test API Health Check
 
 ```bash
-docker compose -f docker-compose-dev.yml down
-docker compose -f docker-compose-dev.yml up -d
-
-# Watch startup
-docker compose -f docker-compose-dev.yml logs -f scalelite-api
+curl -k https://localhost/health_check
 ```
 
-### Development Workflow
+Expected: `success`
 
-**Access Rails console:**
+### 3. Test Database Connectivity
+
+```bash
+docker exec scalelite-api bundle exec rails runner \
+  "puts 'Connected to: ' + ActiveRecord::Base.connection.select_all('SELECT version()').rows[0][0]"
+```
+
+Expected: Shows PostgreSQL 16 version information
+
+### 4. Test API Endpoint
+
+```bash
+curl -k https://localhost/api/v1/servers.json
+```
+
+Expected: Returns XML response (with `unsupportedRequest` if no credentials, which is expected)
+
+### 5. Access Rails Console
+
 ```bash
 docker exec -it scalelite-api bundle exec rails console
 ```
 
-**Run database migrations:**
+In the console:
+```ruby
+Server.count  # Should return number of configured BBB servers
+```
+
+## Development Workflow
+
+### Local Code Editing
+
+Scalelite code is mounted at `./data/scalelite-api:/srv/scalelite:delegated`. Changes to Ruby files are automatically reloaded in development mode:
+
 ```bash
+# Edit a file locally
+nano data/scalelite-api/app/controllers/api_controller.rb
+
+# Changes are visible in running Rails immediately
+curl -k https://localhost/health_check
+```
+
+### Database Migrations
+
+```bash
+# Run pending migrations
 docker exec scalelite-api bundle exec rake db:migrate
+
+# Create new migration
+docker exec -it scalelite-api bundle exec rails generate migration YourMigrationName
+
+# Reset database (warning: deletes all data)
+docker exec scalelite-api bundle exec rake db:reset
 ```
 
-**Run tests:**
+### Running Tests
+
 ```bash
-# Full test suite
 docker exec scalelite-api bundle exec rspec
-
-# Specific test file
-docker exec scalelite-api bundle exec rspec spec/models/server_spec.rb
-
-# With coverage report
-docker exec scalelite-api bundle exec rspec --format documentation
 ```
 
-**Debug with breakpoints:**
-```bash
-# Attach to container for pry/byebug interaction
-docker attach scalelite-api
+### Rails Console
 
-# View logs with breakpoints
+Interactive Rails console for development:
+
+```bash
+docker exec -it scalelite-api bundle exec rails console
+```
+
+### Viewing Logs
+
+```bash
+# API logs
 docker compose -f docker-compose-dev.yml logs -f scalelite-api
+
+# Poller logs
+docker compose -f docker-compose-dev.yml logs -f scalelite-poller
+
+# Recording importer logs
+docker compose -f docker-compose-dev.yml logs -f scalelite-recording-importer
+
+# Nginx proxy logs
+docker compose -f docker-compose-dev.yml logs -f scalelite-proxy
+
+# All services
+docker compose -f docker-compose-dev.yml logs -f
 ```
 
-**Code quality checks:**
-```bash
-# Run rubocop linter
-docker exec scalelite-api bundle exec rubocop
+## Direct Database Access
 
-# Auto-fix style issues
-docker exec scalelite-api bundle exec rubocop -a
+Access PostgreSQL and Redis directly from your host machine:
+
+### PostgreSQL
+
+```bash
+# Connection details (from .env):
+# Host: localhost
+# Port: 5432
+# User: postgres
+# Password: password (from DATABASE_URL in .env)
+# Database: scalelite
+
+psql -h localhost -U postgres -d scalelite
+
+# Or via docker:
+docker exec -it postgres psql -U postgres -d scalelite
 ```
 
-**Adding new gems:**
-```bash
-# 1. Edit Gemfile in ./data/scalelite-api/
-# 2. Install dependencies
-docker exec scalelite-api bundle install
+### Redis
 
-# 3. Restart if needed
-docker compose -f docker-compose-dev.yml restart scalelite-api
+```bash
+# Connection details:
+# Host: localhost
+# Port: 6379
+# No authentication
+
+redis-cli -h localhost -p 6379
+```
+
+### Recording Development
+
+The BigBlueButton recordings proxy is available at:
+```
+https://localhost:8001
+```
+
+To test recording processing:
+1. Create a recording on a connected BigBlueButton server
+2. Wait for it to process
+3. Check Scalelite logs for import progress:
+   ```bash
+   docker compose -f docker-compose-dev.yml logs -f scalelite-recording-importer
+   ```
+
+## Adding BigBlueButton Servers
+
+```bash
+docker exec -i scalelite-api bundle exec rake servers:add[https://bbb1.example.com/bigbluebutton/api/,secret]
+docker exec -i scalelite-api bundle exec rake servers:enable[SERVER_ID]
+```
+
+## Advanced Development Topics
 ```
 
 ### Database Access
