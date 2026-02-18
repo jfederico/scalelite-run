@@ -3,8 +3,10 @@ SECRET_KEY_BASE=
 DOMAIN_NAME=
 
 ### Required by scalelite-api
-LOADBALANCER_SECRET=
 SL_HOST=
+LOADBALANCER_SECRET=
+# For rotating secrets, you can specify multiple secrets separated by commas. The first secret will be used for signing new tokens, but all secrets will be accepted for verifying existing tokens until they expire.
+# LOADBALANCER_SECRETS=
 
 ### Optional for scalelite-api
 # LOADBALANCER_CHECKSUM_ALGORITHM=SHA256
@@ -83,3 +85,91 @@ SCALELITE_RECORDINGS_DOCKER_IMAGE=bigbluebutton/bbb-playback-proxy:jammy-300-alp
 # MULTITENANCY_ENABLED=
 # You can use this image to automate the DNS challenge if you are using the AWS suite
 # CERTBOT_DOCKER_IMAGE=certbot/dns-route53
+#
+### Additional optional configuration for scalelite-api
+### DNS/Security
+# URL_HOST=
+# Sets the hostname that the application API endpoint is accessible from. Used to protect against DNS rebinding attacks.
+# Also used to construct the analytics callback URL (meta_analytics-callback-url) that is sent to BigBlueButton servers.
+# Should include the domain and subdomain (e.g., sl.example.com). Leave blank if behind a Network Load Balancer or when using
+# docker compose.
+# ANALYTICS_CALLBACK_URL_HOST=
+# For HA deployments behind proxy/load balancer: set this to the public-facing hostname if URL_HOST is set to an internal hostname.
+# If not set, falls back to URL_HOST. Example: URL_HOST=scalelite-api (internal), ANALYTICS_CALLBACK_URL_HOST=sl.example.com (public)
+# NGINX_BEHIND_PROXY=false
+# NGINX_RECORDINGS_ONLY=false
+#
+### Rails/Server configuration
+# PORT=3000
+# BIND=
+# INTERVAL=60
+# WEB_CONCURRENCY=2
+# RAILS_MAX_THREADS=3
+# RAILS_ENV=production
+# BUILD_NUMBER=
+# RAILS_LOG_TO_STDOUT=true
+# RAILS_LOG_LEVEL=debug
+#
+### Redis configuration
+# REDIS_POOL=3
+#
+### Meeting configuration
+# MAX_MEETING_DURATION=0
+# DEFAULT_MEETING_TTL=
+#
+### Recording directories
+# RECORDING_SPOOL_DIR=/var/bigbluebutton/spool
+# RECORDING_WORK_DIR=/var/bigbluebutton/recording/scalelite
+# RECORDING_PUBLISH_DIR=/var/bigbluebutton/published
+# RECORDING_UNPUBLISH_DIR=/var/bigbluebutton/unpublished
+# RECORDING_PLAYBACK_FORMATS=presentation:video:podcast:notes:capture
+#
+### Health check thresholds
+# SERVER_HEALTHY_THRESHOLD=1
+# SERVER_UNHEALTHY_THRESHOLD=2
+#
+### API configuration
+# GET_MEETINGS_API_DISABLED=false
+# GET_RECORDINGS_API_FILTERED=false
+#
+### Polling configuration
+# POLLER_THREADS=5
+# CONNECT_TIMEOUT=5
+# POLLER_WAIT_TIMEOUT=10
+# RESPONSE_TIMEOUT=10
+#
+### Load balancing
+# LOAD_MIN_USER_COUNT=15
+# LOAD_JOIN_BUFFER_TIME=15
+# SERVER_ID_IS_HOSTNAME=false
+#
+### API parameter filtering
+# CREATE_EXCLUDE_PARAMS=
+# JOIN_EXCLUDE_PARAMS=
+# DEFAULT_CREATE_PARAMS=
+# OVERRIDE_CREATE_PARAMS=
+# DEFAULT_JOIN_PARAMS=
+# OVERRIDE_JOIN_PARAMS=
+#
+### Database configuration
+# PREPARED_STATEMENT=true
+# DB_CONNECTION_RETRY_COUNT=3
+#
+### Protected Recordings feature (Requires SCALELITE_TAG >= v1.2)
+# PROTECTED_RECORDINGS_ENABLED=false
+# PROTECTED_RECORDINGS_TOKEN_TIMEOUT=60
+# PROTECTED_RECORDINGS_TIMEOUT=360
+#
+### API port configuration
+# SCALELITE_API_PORT=3000
+#
+### Localization
+# DEFAULT_LOCALE=en
+#
+### Voice bridge configuration
+# VOICE_BRIDGE_LEN=7
+# VOICE_BRIDGE_MIN=5
+# VOICE_BRIDGE_MAX=9
+# USE_EXTERNAL_VOICE_BRIDGE=false
+# FSAPI_PASSWORD=
+# FSAPI_MAX_DURATION=

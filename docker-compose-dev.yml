@@ -88,6 +88,8 @@ services:
     env_file:
       - .env
     environment:
+      - URL_HOST=${SL_HOST:-sl}.${DOMAIN_NAME:-user.blindside-ps.dev}
+      - ANALYTICS_CALLBACK_URL_HOST=${ANALYTICS_CALLBACK_URL_HOST:-${SL_HOST:-sl}.${DOMAIN_NAME:-user.blindside-ps.dev}}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - RECORDING_DISABLED=${RECORDING_DISABLED:-false}
@@ -112,6 +114,8 @@ services:
     env_file:
       - .env
     environment:
+      - URL_HOST=${SL_HOST:-sl}.${DOMAIN_NAME:-user.blindside-ps.dev}
+      - ANALYTICS_CALLBACK_URL_HOST=${ANALYTICS_CALLBACK_URL_HOST:-${SL_HOST:-sl}.${DOMAIN_NAME:-user.blindside-ps.dev}}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - SERVER_ID_IS_HOSTNAME=${SERVER_ID_IS_HOSTNAME:-false}
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
@@ -132,6 +136,8 @@ services:
     env_file:
       - .env
     environment:
+      - URL_HOST=${SL_HOST:-sl}.${DOMAIN_NAME:-user.blindside-ps.dev}
+      - ANALYTICS_CALLBACK_URL_HOST=${ANALYTICS_CALLBACK_URL_HOST:-${SL_HOST:-sl}.${DOMAIN_NAME:-user.blindside-ps.dev}}
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
       - RECORDING_DISABLED=false
       - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-false}
